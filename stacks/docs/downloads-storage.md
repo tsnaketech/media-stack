@@ -8,12 +8,13 @@ Les URL et clés API ne changent pas.
 
 ## Montage et droits
 
-Sur Proxmox, pour le LXC 104 :
+Sur Proxmox, définir le numéro du LXC et adapter le chemin de stockage illustratif :
 
 ```sh
-pct set 104 -mp1 /mnt/share/downloads,mp=/downloads
-setfacl -R -m u:101000:rwX /mnt/share/downloads
-find /mnt/share/downloads -type d -exec setfacl -m u:100000:--x,d:u:100000:--x,d:u:101000:rwx {} +
+CT_ID=YOUR_CT_ID
+pct set "$CT_ID" -mp1 /srv/media/downloads,mp=/downloads
+setfacl -R -m u:101000:rwX /srv/media/downloads
+find /srv/media/downloads -type d -exec setfacl -m u:100000:--x,d:u:100000:--x,d:u:101000:rwx {} +
 ```
 
 L’UID 101000 correspond à l’utilisateur 1000 des applications dans ce LXC non
@@ -54,9 +55,3 @@ Remote Path Mapping supplémentaire n’est nécessaire.
 Les dossiers `/media` et `/downloads` restent deux montages Docker distincts.
 Leur présence sur un même disque hôte ne garantit pas les hardlinks entre les
 deux montages ; un import peut nécessiter une copie et consommer de l’espace.
-
-## Migration de cette installation
-
-Le contenu de `/opt/downloads` a été copié vers `/downloads`, sans écrasement de
-fichiers différents, puis vérifié par tailles et empreintes SHA-256. Les fichiers source de `/opt/downloads` ont été supprimés après validation, à la
-demande de l’utilisateur. Les clients utilisent désormais le stockage partagé. Les `.env` précédents sont sauvegardés sous `/opt/media-stack/backups`.

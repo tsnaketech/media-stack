@@ -132,7 +132,7 @@ se gèrent dans l'infrastructure externe.
 ## Documentation et contributions
 
 
-- [Installation et exploitation de l'hôte actuel](docs/deployment.md)
+- [Installation et exploitation](docs/deployment.md)
 - [Profils et formats avec Profilarr](shared/docs/profilarr.md)
 - [Portail Seerr](shared/docs/seerr.md)
 - [Serveur média Jellyfin](shared/docs/jellyfin.md)

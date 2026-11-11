@@ -13,13 +13,12 @@ noms officiels des images Docker. Elle utilise le réseau externe `media-shared`
 L’image fournit son propre contrôle de santé. Gluetun publie les ports 8080 de
 qBittorrent, 8081 de MeTube et 5800 de JDownloader ; son serveur de contrôle reste sur la boucle locale du conteneur.
 
-## État de cette installation
+## Configuration du fournisseur
 
-Gluetun est démarré avec **Proton VPN Plus / WireGuard**. Le filtre de pays est
-`SERVER_COUNTRIES=Belgium` et les serveurs compatibles P2P sont sélectionnés.
-Le contrôle de santé et les journaux ont confirmé une sortie en Belgique.
-Le périphérique TUN est accessible depuis Docker. Les secrets restent dans le
-`.env` privé ; la sélection du pays utilise les noms anglais attendus par Gluetun.
+Le modèle prend en charge **Proton VPN Plus / WireGuard**. Renseigner les
+identifiants du fournisseur dans le `.env` local, vérifier TUN et sélectionner
+des serveurs compatibles avec l’abonnement et le P2P. `SERVER_COUNTRIES` est
+facultatif ; utiliser les noms de pays anglais attendus par Gluetun.
 
 La stack est nécessaire à qBittorrent, MeTube et JDownloader. `scripts/stacks.sh` inclut désormais le VPN
 par défaut ; `--with-vpn` reste accepté pour compatibilité.
@@ -74,7 +73,7 @@ Les fichiers de certificats référencés doivent également être accessibles s
 ## Prérequis du LXC
 
 La [procédure complète Proxmox/TUN](../docs/proxmox-tun.md) détaille le chargement
-du module, la sauvegarde de `104.conf`, les deux lignes de configuration, le
+du module, la sauvegarde de `${CT_ID}.conf`, les deux lignes de configuration, le
 redémarrage et les contrôles de présence du périphérique.
 
 Sur Proxmox, préparer le passage de `/dev/net/tun` vers le LXC hébergeant Docker,
@@ -135,8 +134,8 @@ docker exec qbittorrent curl -fsS --max-time 15 https://ipinfo.io/json
 docker exec qbittorrent ip route get 1.1.1.1
 ```
 
-L’adresse publique doit correspondre à la sortie VPN. Avec le filtre actuel
-`SERVER_COUNTRIES=Belgium`, le pays attendu est `"country": "BE"`. L’adresse peut
+L’adresse publique doit correspondre à la sortie VPN. Si `SERVER_COUNTRIES` est
+renseigné, vérifier que le pays annoncé correspond à la sélection. L’adresse peut
 changer lors des reconnexions ; ne pas la figer. La géolocalisation est indicative,
 et une panne du service IPinfo ne suffit pas à conclure à une panne du VPN.
 La route doit contenir `dev tun0`.

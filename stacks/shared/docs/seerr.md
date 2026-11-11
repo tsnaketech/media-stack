@@ -30,7 +30,7 @@ restent dans `shared/data/seerr`, exclus de Git et à sauvegarder. Aucun volume
 contenant les films ou séries n'est nécessaire pour ce portail.
 
 L'interface utilise le port publié `5055` par défaut. Pour les URL propres à
-l'hôte actuel, consulter le README du parent `/opt`, qui n'est pas destiné à GitHub.
+votre déploiement, consulter le `README.local.md` à la racine du dépôt, exclu de Git.
 La route Traefik externe est `seerr.arr.local` ; le DNS des postes clients doit
 faire pointer ce nom vers l'hôte de Traefik. Modifier `SEERR_PORT` impose aussi
 d'adapter cette route si elle utilise le port publié.

@@ -1,6 +1,7 @@
 # Racine du projet
 
-Les stacks sont regroupées sous `/opt/media-stack` depuis le 11 novembre 2026.
+Les exemples utilisent `/opt/media-stack` comme racine du projet ; le dépôt peut
+être cloné dans un autre répertoire.
 Le dépôt Git couvre `stacks/`, `homepage/`, `dozzle/`, `traefik/`, `arcane/`
 et leur documentation. Les commandes des stacks média restent dans
 `stacks/scripts/`. La CI se trouve dans `.github/workflows/` et exécute ces
@@ -17,8 +18,8 @@ commandes depuis `stacks/`.
 
 Pour préparer l’infrastructure sur un autre hôte, copier les modèles et adapter
 `SERVER_IP`, les noms DNS, les ports et le chemin privé JOAL. Les fichiers d’exemple
-Homepage utilisent les icônes distantes de C411 et 1337x. Cette installation
-possède aussi leurs copies locales dans sa configuration privée.
+Homepage utilisent des icônes distantes ; leurs copies locales éventuelles
+restent dans la configuration propre au déploiement.
 
 ```sh
 cp homepage/.env.example homepage/.env
@@ -42,10 +43,11 @@ Arcane crée `arcane-network` et Traefik crée `proxy-network`. Démarrer ensuit
 Les bibliothèques sont montées sous `/media` et les téléchargements sous
 `/downloads`. Les données applicatives se trouvent dans les dossiers
 `data/` de leurs stacks. `backups/` et `reports/` conservent les fichiers
-d’exploitation privés. `/opt/containerd` est géré par le système.
+d’exploitation privés.
 
-La migration a conservé les noms de projets Compose, de conteneurs et de réseaux.
-Les conteneurs ont été recréés pour leurs nouveaux montages. Les chemins des projets Arcane et son paramètre `projectsDirectory` doivent
+Lors d’un déplacement, conserver les noms des projets Compose, conteneurs et
+réseaux, puis recréer les conteneurs pour actualiser leurs montages. Les chemins
+des projets Arcane et son paramètre `projectsDirectory` doivent
 correspondre au répertoire utilisé pour les Compose, ou aux exports complets
 d’un déploiement externe. Arcane monte la racine au même emplacement dans son
 conteneur pour que les chemins transmis au moteur Docker correspondent à l’hôte.

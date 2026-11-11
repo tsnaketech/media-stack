@@ -2,7 +2,7 @@
 
 qui utilise l’image officielle `ghcr.io/autobrr/qui:latest` dans le Compose
 partagé. Son interface est publiée sur le port `7476`, avec une route Traefik
-`qui.arr.local`. Les URL de l’hôte actuel sont dans le README de `/opt`.
+`qui.arr.local`. Les URL propres au déploiement sont à renseigner dans `README.local.md` à la racine du dépôt.
 
 L’application rejoint `media-shared` et utilise l’API de qBittorrent à
 `http://qbittorrent:8080`. Elle ne remplace pas qBittorrent. Son stockage persiste

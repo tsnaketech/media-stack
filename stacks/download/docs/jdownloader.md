@@ -51,7 +51,7 @@ Dans un LXC non privilégié, le démarrage nécessite aussi la traversée du do
 Si les ACL héritées ne l’autorisent pas, exécuter sur Proxmox, après création du dossier :
 
 ```sh
-setfacl -m u:100000:--x /mnt/share/downloads/direct
+setfacl -m u:100000:--x /srv/media/downloads/direct
 ```
 
 Cette ACL donne uniquement la traversée ; UID 101000 conserve les droits d’écriture.
@@ -68,16 +68,17 @@ Identifier le compte Unix réellement utilisé par Samba, en tenant compte des
 L’UID propriétaire d’une bibliothèque ne prouve pas l’identité du compte Samba.
 Une ACL de lecture sur `direct` et ses descendants, avec héritage sur les dossiers,
 conserve les propriétaires et les droits des applications. Exécuter **sur Proxmox**,
-en remplaçant `sambauser` si nécessaire :
+en renseignant le compte du partage dans `SAMBA_USER` et en adaptant les chemins :
 
 ```sh
 set -e
-id sambauser
-smb_uid=$(id -u sambauser)
+SAMBA_USER=YOUR_SAMBA_USER
+id "$SAMBA_USER"
+smb_uid=$(id -u "$SAMBA_USER")
 acl_backup="/root/jdownloader-direct-acl-$(date +%Y%m%d-%H%M%S).txt"
-getfacl -R -p /mnt/share/downloads/direct > "$acl_backup"
-setfacl -R -m "u:${smb_uid}:r-X" /mnt/share/downloads/direct
-find /mnt/share/downloads/direct -type d -exec setfacl -m "d:u:${smb_uid}:r-x" {} +
+getfacl -R -p /srv/media/downloads/direct > "$acl_backup"
+setfacl -R -m "u:${smb_uid}:r-X" /srv/media/downloads/direct
+find /srv/media/downloads/direct -type d -exec setfacl -m "d:u:${smb_uid}:r-x" {} +
 ```
 
 Les parents du partage doivent aussi autoriser la traversée. Cette correction

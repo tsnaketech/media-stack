@@ -1,7 +1,12 @@
 # Autoriser TUN dans le LXC Proxmox
 
 Cette procédure prépare le périphérique `/dev/net/tun` pour Gluetun dans le
-LXC **104**, qui héberge Docker. Adapter ce numéro pour une autre installation.
+LXC qui héberge Docker. Définir son numéro avant de commencer :
+
+```sh
+CT_ID=YOUR_CT_ID
+```
+
 Les commandes des étapes 1 à 5 s’exécutent **sur Proxmox, en root**, pas dans le
 LXC ni dans un conteneur Docker.
 
@@ -39,7 +44,7 @@ Si le nœud est toujours absent, résoudre ce point sur Proxmox avant de poursui
 ## 2. Sauvegarder la configuration du LXC
 
 ```sh
-cp /etc/pve/lxc/104.conf "/root/104.conf.before-tun-$(date +%Y%m%d-%H%M%S)"
+cp "/etc/pve/lxc/${CT_ID}.conf" "/root/${CT_ID}.conf.before-tun-$(date +%Y%m%d-%H%M%S)"
 ```
 
 Le nom daté conserve un exemplaire distinct de la configuration existante.
@@ -47,7 +52,7 @@ Le nom daté conserve un exemplaire distinct de la configuration existante.
 ## 3. Ajouter l’autorisation et le montage
 
 ```sh
-nano /etc/pve/lxc/104.conf
+nano "/etc/pve/lxc/${CT_ID}.conf"
 ```
 
 Ajouter les deux lignes suivantes si elles ne sont pas déjà présentes, en
@@ -71,14 +76,14 @@ pas de convertir le LXC en conteneur privilégié ni de désactiver AppArmor.
 ## 4. Arrêter puis démarrer le LXC
 
 ```sh
-pct shutdown 104
-pct status 104
+pct shutdown "$CT_ID"
+pct status "$CT_ID"
 ```
 
 Attendre que son état soit `stopped`, puis démarrer :
 
 ```sh
-pct start 104
+pct start "$CT_ID"
 ```
 
 Un arrêt/démarrage complet recharge la configuration LXC, y compris le montage.
@@ -87,7 +92,7 @@ Les services Docker ayant une politique de redémarrage adaptée reviennent ensu
 ## 5. Vérifier depuis Proxmox
 
 ```sh
-pct exec 104 -- sh -c 'test -c /dev/net/tun && ls -l /dev/net/tun'
+pct exec "$CT_ID" -- sh -c 'test -c /dev/net/tun && ls -l /dev/net/tun'
 ```
 
 La commande doit réussir et afficher un périphérique caractère avec **10, 200**.
@@ -96,7 +101,7 @@ des identifiants : vérifier le type de périphérique et les droits d’accès.
 
 ## 6. Vérifier le Compose dans le LXC
 
-À partir d’ici, exécuter **dans le LXC 104** :
+À partir d’ici, exécuter **dans le LXC hébergeant Docker** :
 
 ```sh
 cd /opt/media-stack/stacks
@@ -119,7 +124,7 @@ L’accès à TUN prépare seulement le périphérique. Pour établir le VPN, re
 | TUN existe mais le VPN échoue | Vérifier ensuite les paramètres du fournisseur et les journaux Gluetun. |
 
 Pour annuler le passage du périphérique, retirer les deux lignes ajoutées à
-`104.conf`, puis effectuer un nouvel arrêt/démarrage du LXC. La sauvegarde datée
+`${CT_ID}.conf`, puis effectuer un nouvel arrêt/démarrage du LXC. La sauvegarde datée
 permet de comparer avec les réglages initiaux.
 
 Références : [configuration LXC](https://github.com/lxc/lxc/blob/main/doc/lxc.container.conf.sgml.in),

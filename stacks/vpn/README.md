@@ -10,12 +10,12 @@ The image supplies its own health check. Gluetun publishes qBittorrent port 8080
 MeTube port 8081, and JDownloader port 5800. Its control server stays on the
 container loopback interface.
 
-## Current deployment
+## Provider configuration
 
-Gluetun runs with **Proton VPN Plus / WireGuard**, using
-`SERVER_COUNTRIES=Belgium` and P2P-compatible servers. Health checks and logs
-confirmed an exit in Belgium. Docker can access TUN. Secrets remain in the local
-`.env`; country names use the English values expected by Gluetun.
+The template supports **Proton VPN Plus / WireGuard**. Set your provider-issued
+credentials in the local `.env`, verify TUN access, and select servers compatible
+with your subscription and P2P requirements. `SERVER_COUNTRIES` is optional;
+when set, use the English country names expected by Gluetun.
 
 qBittorrent, MeTube, and JDownloader require this stack. `scripts/stacks.sh`
 includes the VPN by default; `--with-vpn` remains accepted for compatibility.
@@ -72,7 +72,7 @@ For a built-in provider, leave `OPENVPN_CUSTOM_CONFIG` empty.
 ## LXC prerequisites
 
 The [Proxmox/TUN procedure](../docs/proxmox-tun.md) covers module loading,
-backing up `104.conf`, the two configuration entries, restarting the LXC,
+backing up `${CT_ID}.conf`, the two configuration entries, restarting the LXC,
 and checking the device.
 
 On Proxmox, pass `/dev/net/tun` into the LXC hosting Docker, then restart that LXC
@@ -131,8 +131,8 @@ docker exec qbittorrent curl -fsS --max-time 15 https://ipinfo.io/json
 docker exec qbittorrent ip route get 1.1.1.1
 ```
 
-The public address should belong to the VPN exit. With
-`SERVER_COUNTRIES=Belgium`, expect `"country": "BE"`. The address can change on
+The public address should belong to the VPN exit. If `SERVER_COUNTRIES` is set,
+check that the reported country matches your selected location. The address can change on
 reconnection; do not pin it. Geolocation is indicative, and an IPinfo outage
 alone does not establish a VPN failure. The route should include `dev tun0`.
 

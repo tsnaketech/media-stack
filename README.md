@@ -3,7 +3,7 @@
 **English** | [Français](README.fr.md)
 
 Docker Compose configuration for a media homelab: discovery, downloads, playback,
-and administration. The project and Git repository root is `/opt/media-stack`.
+and administration. Examples use `/opt/media-stack` as the checkout path; adapt it to your deployment.
 
 ## Layout
 

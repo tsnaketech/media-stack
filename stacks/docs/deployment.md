@@ -2,8 +2,8 @@
 
 Les URL ci-dessous utilisent `IP_DU_SERVEUR`, à remplacer par l’adresse de votre hôte.
 
-Stacks Docker Compose du LXC `media-stack` (`IP_DU_SERVEUR`).
-Les médias viennent du montage Proxmox `/mnt/share/library` → LXC `/media`.
+Stacks Docker Compose pour un serveur média. Les exemples Proxmox utilisent
+`/srv/media/library` → LXC `/media` ; adapter ce chemin au stockage disponible.
 Les configurations et bases applicatives restent sur le disque local dans
 `stacks/*/data/` et `arcane/data/`.
 
@@ -45,14 +45,14 @@ pointe vers un autre hôte et n'est pas gérée par ces stacks.
 
 ## Exploitation
 
-Depuis la racine du dépôt (`/opt/media-stack/stacks` sur cet hôte), avec accès au moteur Docker :
+Depuis la racine du dépôt (`/opt/media-stack/stacks` dans les exemples), avec accès au moteur Docker :
 
 ```sh
 ./scripts/stacks.sh validate  # Valide les neuf stacks du dépôt
 ./scripts/stacks.sh up        # Démarre dans l'ordre des dépendances
 ./scripts/stacks.sh status    # Affiche l'état de chaque stack
 ./scripts/stacks.sh logs      # Journaux récents
-python3 scripts/check-services.py --with-infra --proxy-domain arr.local  # Hôte actuel
+python3 scripts/check-services.py --with-infra --proxy-domain arr.local  # Exemple de domaine local
 ```
 
 Le réseau externe `media-shared`, créé par `scripts/vpn-up.sh`, relie Prowlarr,
@@ -150,9 +150,9 @@ utiliser un résolveur capable de les traiter plutôt qu'un DNS public.
 
 ## Stack VPN optionnelle
 
-Gluetun est préparé dans `vpn/`. Proton VPN Plus/WireGuard est
-préparé dans `vpn/.env` ; renseigner la clé Proton avant le démarrage et vérifier
-l’accès du LXC à `/dev/net/tun`. Le tunnel Proton VPN Plus/WireGuard est actif sur cet hôte, avec une sortie vérifiée en Belgique.
+Gluetun est défini dans `vpn/`. Le modèle propose Proton VPN Plus/WireGuard ;
+adapter `vpn/.env` au fournisseur, renseigner ses secrets avant le démarrage et
+vérifier l’accès du LXC à `/dev/net/tun`. Contrôler ensuite la sortie VPN.
 
 ```sh
 ./stacks/scripts/stacks.sh validate --with-vpn

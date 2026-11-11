@@ -24,7 +24,7 @@ reçus restent dans un dossier de réception distinct, en attendant leur import.
 
 ## Gestion
 
-Depuis la racine du dépôt (`/opt/media-stack/stacks` sur cet hôte) :
+Depuis la racine du dépôt (`/opt/media-stack/stacks` dans les exemples) :
 
 ```sh
 ./scripts/vpn-up.sh

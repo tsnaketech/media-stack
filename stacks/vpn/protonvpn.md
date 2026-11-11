@@ -28,7 +28,7 @@ Dans le LXC, modifier `/opt/media-stack/stacks/vpn/.env` :
 ```dotenv
 VPN_SERVICE_PROVIDER=protonvpn
 VPN_TYPE=wireguard
-SERVER_COUNTRIES=Belgium
+SERVER_COUNTRIES='COUNTRY_NAME'
 FREE_ONLY=off
 PORT_FORWARD_ONLY=on
 WIREGUARD_PRIVATE_KEY='replace-with-PrivateKey'
@@ -36,7 +36,8 @@ WIREGUARD_ADDRESSES='10.2.0.2/32'
 VPN_PORT_FORWARDING=off
 ```
 
-Remplacer la clé et adapter l’adresse à la valeur `Address` de son fichier.
+Remplacer la clé, `COUNTRY_NAME` par le nom anglais du pays souhaité (ou laisser
+le filtre vide), et adapter l’adresse à la valeur `Address` de son fichier.
 Le fournisseur intégré sélectionne les endpoints et les clés publiques depuis
 sa liste de serveurs : laisser `WIREGUARD_PUBLIC_KEY`, `WIREGUARD_ENDPOINT_IP`,
 `WIREGUARD_ENDPOINT_PORT` et `WIREGUARD_PRESHARED_KEY` vides dans cette méthode.
@@ -80,6 +81,6 @@ avec l’option **NAT-PMP / Port Forwarding**, puis définir `VPN_PORT_FORWARDIN
 Proton attribue un port dynamique. Le client BitTorrent devra utiliser le port
 obtenu et être raccordé au tunnel ; la mise à jour automatique du port
 sont une étape supplémentaire à configurer avant de compter sur cette fonction.
-La configuration actuelle laisse cette demande de port désactivée.
+Le modèle laisse cette demande de port désactivée.
 
 Référence : [paramètres Proton dans Gluetun](https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers/protonvpn.md).

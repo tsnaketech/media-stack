@@ -3,8 +3,8 @@
 [English](README.md) | **Français**
 
 Configuration Docker Compose d’un homelab média, avec ses outils de recherche,
-de téléchargement, de lecture et d’administration. La racine du projet et du
-dépôt Git est `/opt/media-stack`.
+de téléchargement, de lecture et d’administration. Les exemples utilisent
+`/opt/media-stack` comme racine du dépôt ; adapter ce chemin au déploiement.
 
 ## Organisation
 

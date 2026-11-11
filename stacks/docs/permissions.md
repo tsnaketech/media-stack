@@ -2,34 +2,41 @@
 
 Les URL ci-dessous utilisent `IP_DU_SERVEUR`, à remplacer par l’adresse de votre hôte.
 
-Cette procédure décrit le LXC **104**, `media-stack`, à l'adresse
-`IP_DU_SERVEUR`. Les blocs indiquent où exécuter les commandes. Les valeurs
-`1000:1000` supposent les UID/GID actuels des applications : les adapter si les
-fichiers `.env` ou le mapping LXC changent. Les commandes de correction sont
+Cette procédure illustre un LXC non privilégié hébergeant Docker. Les blocs
+indiquent où exécuter les commandes. Sur Proxmox, définir `CT_ID` avec son numéro :
+
+```bash
+CT_ID=YOUR_CT_ID
+```
+
+Les chemins `/srv/media/library` et `/srv/media/downloads` sont des exemples à
+adapter au stockage de l’hôte. Les valeurs `1000:1000` supposent les UID/GID par
+défaut des applications : les adapter si les fichiers `.env` ou le mapping LXC
+changent. Les commandes de correction sont
 à utiliser en cas de besoin, pas à relancer systématiquement au démarrage.
 
 ## 1. Comprendre les chemins et les identifiants
 
 | Niveau | Exemple pour la musique |
 |---|---|
-| Proxmox | `/mnt/share/library/music` |
-| LXC 104 | `/media/music` |
+| Proxmox | `/srv/media/library/music` |
+| LXC | `/media/music` |
 | Lidarr / Navidrome | `/music` |
 
-Le montage du LXC est `mp0: /mnt/share/library,mp=/media`.
+Le montage du LXC est `mp0: /srv/media/library,mp=/media`.
 
-Pour le configurer, exécuter **sur Proxmox**, après vérification de `pct config 104`
+Pour le configurer, exécuter **sur Proxmox**, après vérification de `pct config "$CT_ID"`
 pour ne pas remplacer un autre montage existant :
 
 ```bash
-pct set 104 -mp0 /mnt/share/library,mp=/media
+pct set "$CT_ID" -mp0 /srv/media/library,mp=/media
 ```
 
 Après application du montage (redémarrer le LXC si nécessaire), vérifier :
 
 ```bash
-pct config 104
-pct exec 104 -- findmnt -T /media
+pct config "$CT_ID"
+pct exec "$CT_ID" -- findmnt -T /media
 ```
 
 Les sous-dossiers `music`, `movies`, `tv`, `books` et `audiobooks` sont
@@ -38,13 +45,13 @@ téléchargements `mp1` est décrit dans le [guide du stockage](downloads-storag
 
 Le LXC est non privilégié : ses identifiants sont traduits côté Proxmox.
 
-| Identifiant dans le LXC | Identifiant sur Proxmox avec le mapping actuel |
+| Identifiant dans le LXC | Identifiant sur Proxmox avec le mapping par défaut |
 |---|---|
 | UID 0, root du LXC / moteur Docker | UID 100000 |
 | UID 1000, utilisateur des applications | UID 101000 |
 | GID 1000, groupe des applications | GID 101000 |
 
-Le groupe **1000 sur Proxmox** (`smbshare`) ne correspond donc pas au groupe
+Un groupe **1000 sur Proxmox** ne correspond donc pas au groupe
 1000 du LXC. L'ACL nominative `user:101000` accorde les droits à l'utilisateur
 applicatif sans changer le propriétaire ou le groupe utilisés par Samba.
 Un propriétaire ou groupe hors mapping peut apparaître comme `nobody` ou
@@ -53,11 +60,11 @@ Un propriétaire ou groupe hors mapping peut apparaître comme `nobody` ou
 **Sur Proxmox**, vérifier avant de corriger :
 
 ```bash
-pct config 104
-pct exec 104 -- cat /proc/self/uid_map
-pct exec 104 -- cat /proc/self/gid_map
-ls -ldn /mnt/share/library /mnt/share/library/music
-getfacl -n /mnt/share/library/music
+pct config "$CT_ID"
+pct exec "$CT_ID" -- cat /proc/self/uid_map
+pct exec "$CT_ID" -- cat /proc/self/gid_map
+ls -ldn /srv/media/library /srv/media/library/music
+getfacl -n /srv/media/library/music
 ```
 
 La ligne `0 100000 65536` indique que l'intervalle d'identifiants du LXC
@@ -93,7 +100,7 @@ effectifs peuvent aussi évoluer.
 
 ```bash
 acl_backup="/root/media-acl-$(date +%Y%m%d-%H%M%S).txt"
-getfacl -R -p /mnt/share/library > "$acl_backup"
+getfacl -R -p /srv/media/library > "$acl_backup"
 printf 'Sauvegarde ACL : %s\n' "$acl_backup"
 ```
 
@@ -115,14 +122,14 @@ Elles conservent les propriétaires et les groupes existants :
 
 ```bash
 # Traverser le dossier parent.
-setfacl -m u:101000:--x /mnt/share/library
+setfacl -m u:101000:--x /srv/media/library
 
 # Autoriser l'accès aux éléments existants.
 setfacl -R -m u:101000:rwX \
-  /mnt/share/library/{music,movies,tv,books,audiobooks}
+  /srv/media/library/{music,movies,tv,books,audiobooks}
 
 # Définir l'héritage sur tous les dossiers existants.
-find /mnt/share/library/{music,movies,tv,books,audiobooks} -type d \
+find /srv/media/library/{music,movies,tv,books,audiobooks} -type d \
   -exec setfacl -m d:u:101000:rwx {} +
 ```
 
@@ -145,12 +152,12 @@ la traversée du chemin par root du LXC.
 **Sur Proxmox**, pour la musique uniquement :
 
 ```bash
-setfacl -m u:100000:--x /mnt/share/library
-setfacl -m u:100000:r-x /mnt/share/library/music
-pct exec 104 -- stat /media/music
+setfacl -m u:100000:--x /srv/media/library
+setfacl -m u:100000:r-x /srv/media/library/music
+pct exec "$CT_ID" -- stat /media/music
 ```
 
-Le `r-x` sur la musique correspond à la correction utilisée pendant le diagnostic.
+Le `r-x` sur la musique donne à root du LXC la lecture et la traversée du dossier.
 Pour un simple besoin de traversée, `--x` peut suffire. Ne pas appliquer les droits
 de root récursivement à toutes les bibliothèques sans besoin identifié.
 
@@ -193,7 +200,7 @@ ne configurent pas directement l'utilisateur de leur processus.
 pour la création du fichier de test :
 
 ```bash
-pct exec 104 -- setpriv --reuid=1000 --regid=1000 --clear-groups \
+pct exec "$CT_ID" -- setpriv --reuid=1000 --regid=1000 --clear-groups \
   sh -c 'f=$(mktemp /media/music/.permission-test.XXXXXX) && rm -- "$f"'
 ```
 
@@ -227,8 +234,8 @@ la lecture. Adapter le chemin et le service à la bibliothèque concernée.
 **Sur Proxmox**, pour une erreur de lecture seule :
 
 ```bash
-findmnt -T /mnt/share/library/music -o TARGET,SOURCE,FSTYPE,OPTIONS
-pct exec 104 -- findmnt -T /media/music -o TARGET,SOURCE,FSTYPE,OPTIONS
+findmnt -T /srv/media/library/music -o TARGET,SOURCE,FSTYPE,OPTIONS
+pct exec "$CT_ID" -- findmnt -T /media/music -o TARGET,SOURCE,FSTYPE,OPTIONS
 ```
 
 Une ACL ne rend pas un montage `ro` inscriptible. Après une modification de
@@ -239,18 +246,19 @@ rendre inscriptible un système de fichiers sous-jacent en lecture seule.
 ## 9. Donner accès aux partages Samba depuis Windows
 
 Exécuter ce bloc **sur Proxmox**, dans Bash. Utiliser le compte Unix du
-partage Samba à la place de `sambauser` si son nom diffère. Le bloc applique
+partage Samba dans `SAMBA_USER`. Le bloc applique
 une ACL nominative de lecture à la bibliothèque et aux téléchargements, puis
 configure son héritage sur les dossiers existants.
 
 ```bash
-if smb_uid=$(id -u sambauser); then
-  share_dirs=(/mnt/share/library /mnt/share/downloads)
+SAMBA_USER=YOUR_SAMBA_USER
+if smb_uid=$(id -u "$SAMBA_USER"); then
+  share_dirs=(/srv/media/library /srv/media/downloads)
 
   setfacl -R -P -m "u:${smb_uid}:r-X" "${share_dirs[@]}" &&
     find "${share_dirs[@]}" -type d \
       -exec setfacl -m "d:u:${smb_uid}:r-x" {} + &&
-    runuser -u sambauser -- ls -l "${share_dirs[@]}"
+    runuser -u "$SAMBA_USER" -- ls -l "${share_dirs[@]}"
 fi
 ```
 

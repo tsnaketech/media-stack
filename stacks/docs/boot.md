@@ -59,7 +59,14 @@ Après une recréation manuelle de Gluetun, utiliser `vpn-up.sh` ou redémarrer 
 service pour raccorder les clients.
 
 Sur Proxmox, le démarrage du LXC lui-même reste une configuration de l’hôte.
-Pour le conteneur 104, vérifier `pct config 104` et activer si nécessaire
-`pct set 104 -onboot 1`. Les montages de stockage et TUN doivent également être
+Définir son numéro puis vérifier et activer son démarrage si nécessaire :
+
+```sh
+CT_ID=YOUR_CT_ID
+pct config "$CT_ID"
+pct set "$CT_ID" -onboot 1
+```
+
+Les montages de stockage et TUN doivent également être
 disponibles avant le démarrage des applications ; voir les guides de permissions
 et de configuration VPN.

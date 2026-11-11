@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-The repository root is `/opt/media-stack`.
+Documentation uses `/opt/media-stack` as an example checkout path. Keep host-specific details in ignored local files.
 
 - `stacks/{vpn,indexer,download,shared,music,movie,tv,audiobook,book}/` contains nine populated Compose stacks, environment examples and service guides.
 - `stacks/scripts/` contains configuration and lifecycle automation. `stacks/tests/` contains Python unit tests. CI workflows live in `.github/workflows/` and run from `stacks/`.

@@ -66,7 +66,7 @@ listées utilisent HTTP. Les mentions **VPN** concernent les connexions sortante
 FlareSolverr et Gluetun n’ont pas d’interface utilisateur publiée. FlareSolverr
 s’utilise via Prowlarr (`http://flaresolverr:8191` entre conteneurs,
 `http://127.0.0.1:8191` depuis le LXC) ; voir son [guide](stacks/indexer/docs/flaresolverr.md).
-Gluetun fournit le VPN Proton Plus/WireGuard à qBittorrent, MeTube et JDownloader ;
+Gluetun fournit le tunnel VPN configuré à qBittorrent, MeTube et JDownloader ;
 voir les [contrôles VPN](stacks/vpn/README.md).
 
 ## Stockage et configuration
@@ -82,9 +82,8 @@ voir les [contrôles VPN](stacks/vpn/README.md).
 | Données persistantes | `stacks/<stack>/data/` | Sauvegarder séparément du code |
 | Rapports locaux | `reports/` | [Ouvrir le répertoire](reports/) |
 
-Les montages Proxmox sont `/mnt/share/library` → `/media` (`mp0`) et
-`/mnt/share/downloads` → `/downloads` (`mp1`). L’ancien `/opt/downloads` a été
-supprimé après migration vérifiée ; il n’est plus utilisé.
+Exemples de montages Proxmox à adapter : `/srv/media/library` → `/media` (`mp0`)
+et `/srv/media/downloads` → `/downloads` (`mp1`).
 
 Les comptes sont conservés dans les `.env` privés de leur stack. Pour JDownloader,
 SABnzbd et qui : `stacks/download/.env`. Le VPN, ses secrets et les ports de
