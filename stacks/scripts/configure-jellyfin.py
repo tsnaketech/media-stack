@@ -142,6 +142,16 @@ def bootstrap_seerr(service, jellyfin_env):
     print("Seerr: Jellyfin administrator authenticated through the native login flow.")
 
 
+def abyss_css(css):
+    """Refresh managed imports while preserving custom rules, even inside old markers."""
+    start, end = "/* ABYSS THEME START */", "/* ABYSS THEME END */"
+    remaining = (css or "").replace(start, "").replace(end, "")
+    imports = r'@import\s+url\(\s*([\"\x27]?)(?:/web/ui/(?:abyss|abyss-je)\.css|https://cdn\.jsdelivr\.net/gh/AumGupta/abyss-jellyfin@[^\s\"\x27()]+/(?:abyss\.css|styles/abyss-je\.css))\1\s*\)\s*;'
+    remaining = re.sub(imports, "", remaining).strip()
+    block = start + '\n@import url("/web/ui/abyss.css");\n@import url("/web/ui/abyss-je.css");\n' + end
+    return block + ("\n\n" + remaining if remaining else "")
+
+
 def ensure_abyss(api, user_id, config_path):
     branding = api.call("Branding/Configuration")
     query = urllib.parse.urlencode({"userId": user_id, "client": "emby"})
@@ -152,11 +162,7 @@ def ensure_abyss(api, user_id, config_path):
         fd = os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as stream:
             json.dump({"branding": branding, "displayPreferences": preferences, "userId": user_id}, stream)
-    start, end = "/* ABYSS THEME START */", "/* ABYSS THEME END */"
-    css = branding.get("CustomCss") or ""
-    css = re.sub(re.escape(start) + ".*?" + re.escape(end) + r"\s*", "", css, flags=re.S)
-    block = start + '\n@import url("/web/ui/abyss.css");\n' + end
-    updated_css = block + ("\n" + css if css else "")
+    updated_css = abyss_css(branding.get("CustomCss"))
     if branding.get("CustomCss") != updated_css:
         api.call("System/Configuration/Branding", "POST", dict(branding, CustomCss=updated_css))
     expected = {

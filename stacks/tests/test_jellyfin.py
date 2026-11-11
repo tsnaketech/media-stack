@@ -12,6 +12,21 @@ jellyfin = importlib.import_module("configure-jellyfin")
 
 
 class JellyfinSetupTests(unittest.TestCase):
+    def test_theme_import_update_preserves_custom_rules_inside_old_managed_block(self):
+        custom = ':root { --abyss-accent: 100, 160, 255; --abyss-radius: 8px; }'
+        source = '/* ABYSS THEME START */\n@import url("/web/ui/abyss.css");\n' + custom + '\n/* ABYSS THEME END */'
+        result = jellyfin.abyss_css(source)
+        self.assertEqual(result.count('@import url("/web/ui/abyss.css");'), 1)
+        self.assertEqual(result.count('@import url("/web/ui/abyss-je.css");'), 1)
+        self.assertIn(custom, result.split('/* ABYSS THEME END */', 1)[1])
+        self.assertEqual(jellyfin.abyss_css(result), result)
+
+    def test_theme_update_keeps_other_stylesheets(self):
+        source = '@import url("https://example.org/font.css");\nbody { color: white; }'
+        result = jellyfin.abyss_css(source)
+        self.assertIn(source, result)
+        self.assertEqual(jellyfin.abyss_css(result), result)
+
     def test_repository_setup_preserves_other_sources_and_deduplicates(self):
         api = Mock()
         official = {"Name": "Stable", "Url": "https://repo.jellyfin.org/manifest.json", "Enabled": True}

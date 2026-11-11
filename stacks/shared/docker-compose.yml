@@ -62,18 +62,10 @@ services:
       - ${DNS_SECONDARY:-1.0.0.1}
     networks:
       - media-shared
-    image: ${JELLYFIN_IMAGE:-media-stack/jellyfin-abyss:local}
-    build:
-      context: ./jellyfin-abyss
-      args:
-        JELLYFIN_BASE_IMAGE: ${JELLYFIN_BASE_IMAGE:-jellyfin/jellyfin:latest}
+    image: ${JELLYFIN_IMAGE:-lscr.io/linuxserver/jellyfin:latest}
     container_name: jellyfin
-    init: true
-    user: "${PUID:-1000}:${PGID:-1000}"
-    cap_drop:
-      - ALL
     environment:
-      TZ: ${TZ:-Europe/Paris}
+      <<: *environment
       JELLYFIN_PublishedServerUrl: ${JELLYFIN_PUBLIC_URL:-http://jellyfin.arr.local}
       JELLYFIN_SETUP_ENABLED: ${JELLYFIN_SETUP_ENABLED:-true}
       JELLYFIN_PLUGIN_REPOSITORIES_ENABLED: ${JELLYFIN_PLUGIN_REPOSITORIES_ENABLED:-true}
@@ -101,7 +93,11 @@ services:
       - "${WEB_BIND_IP:-0.0.0.0}:${JELLYFIN_DISCOVERY_PORT:-7359}:7359/udp"
     volumes:
       - ./data/jellyfin/config:/config
+      - ./data/jellyfin/cache:/config/cache
+      # Retain existing transcoding paths configured before the image migration.
       - ./data/jellyfin/cache:/cache
+      - ./jellyfin-abyss/init:/custom-cont-init.d:ro
+      - ./jellyfin-abyss/assets:/opt/abyss-assets:ro
       - type: bind
         source: ${JELLYFIN_MOVIES_DIR:-/media/movies}
         target: /media/movies
@@ -120,6 +116,12 @@ services:
         read_only: true
         bind:
           create_host_path: false
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8096/health"]
+      start_period: 90s
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
   seerr:
     <<: *common-keys

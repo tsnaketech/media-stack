@@ -24,7 +24,7 @@ python3 stacks/scripts/check-services.py --with-infra --proxy-domain arr.local
 
 These validate Compose models, inspect containers, check deployment prerequisites, run unit tests and check HTTP routes. `initialize.py prepare` prepares environment files and directories. `initialize.py up` starts and configures the media stacks.
 
-Jellyfin uses a derived image with Abyss and Spotlight. Rebuild it with `python3 stacks/scripts/stack-compose.py shared build --pull jellyfin`. Theme sources and their pinned revision live in `stacks/shared/jellyfin-abyss/`.
+Jellyfin uses `lscr.io/linuxserver/jellyfin:latest`. Its `/custom-cont-init.d` hook reapplies pinned Abyss assets and Spotlight at startup, including `abyss-je.css`. Keep LinuxServer's root/s6 initialization and pass `PUID`/`PGID`; do not add Docker `init`, force `user`, or drop all capabilities. Theme sources live in `stacks/shared/jellyfin-abyss/`.
 
 ## Coding Style & Naming Conventions
 

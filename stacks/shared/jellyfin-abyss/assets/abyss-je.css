@@ -1,0 +1,131 @@
+/* overrides for jellyfin-enhanced v11.3.0.0 */
+
+#jellyfin-enhanced-panel {
+    background-color: rgba(var(--abyss-glass-tint), 0.69) !important;
+    margin: 24px 0;
+    border-radius: 32px !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(245, 245, 247, 0.2) !important;
+    backdrop-filter: blur(15px) !important;
+}
+
+#jellyfin-enhanced-panel>div:first-of-type {
+    border-bottom: none !important;
+    background: transparent !important;
+}
+
+#jellyfin-enhanced-panel .panel-main-content {
+    background: rgba(var(--abyss-glass-tint), 0.69) !important;
+}
+
+#jellyfin-enhanced-panel .tabs {
+    padding: 4px !important;
+    background-color: rgba(var(--abyss-glass-tint), 0.8);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(87, 87, 87, 0.18);
+    border-radius: 50px;
+    margin: 8px 56px;
+}
+
+#jellyfin-enhanced-panel .tab-button {
+    border-radius: 50px;
+    border-bottom: none !important;
+    background: none !important;
+}
+
+#jellyfin-enhanced-panel .tab-button.active {
+    border-radius: 50px;
+    border-bottom: none !important;
+    background: rgb(var(--abyss-accent)) !important;
+    color: black !important;
+}
+
+
+#jellyfin-enhanced-panel h3,
+#jellyfin-enhanced-panel summary {
+    color: rgb(var(--abyss-accent)) !important;
+    border-bottom-color: rgb(var(--abyss-accent)) !important;
+}
+
+#jellyfin-enhanced-panel #clearTranslationCacheButton,
+#jellyfin-enhanced-panel #releaseNotesBtn {
+    background: rgba(var(--abyss-accent), 0.5) !important;
+    border-color: rgb(var(--abyss-accent)) !important;
+}
+
+#jellyfin-enhanced-panel div[style*="border-left"],
+#jellyfin-enhanced-panel .style-preset[style*="border: 2px solid"] {
+    border-left-color: rgb(var(--abyss-accent)) !important;
+    border-color: rgb(var(--abyss-accent)) !important;
+}
+
+#jellyfin-enhanced-panel input[type="checkbox"],
+#jellyfin-enhanced-panel input[type="range"] {
+    accent-color: rgb(var(--abyss-accent)) !important;
+}
+
+#jellyfin-enhanced-panel div[style*="background: #00A4DC"] {
+    background: rgb(var(--abyss-accent)) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+#jellyseerr-search-icon {
+    top: 50%;
+}
+
+#je-bookmarks-standalone-page {
+    margin-top: 16vh;
+}
+
+.genre-overlay-container *,
+.rating-overlay-container *,
+.quality-overlay-container *,
+.language-overlay-container * {
+    border-radius: 12px !important;
+}
+
+.language-overlay-container {
+    left: 12px !important;
+    bottom: 12px !important;
+    border-radius: 12px !important;
+}
+
+.quality-overlay-container {
+    left: 12px !important;
+    top: 12px !important;
+    border-radius: 12px !important;
+}
+
+.quality-overlay-label {
+    box-shadow: none !important;
+}
+
+.rating-overlay-container {
+    right: 12px !important;
+    bottom: 12px !important;
+    border-radius: 12px !important;
+}
+
+.genre-overlay-container {
+    border-radius: 12px !important;
+}
+
+.genre-overlay-container .genre-tag {
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow: none;
+    border: none;
+    padding: 1px;
+}
+
+.je-bm-player-modal-container {
+    background-color: rgba(var(--abyss-glass-tint), 0.69) !important;
+    border-radius: 32px !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(245, 245, 247, 0.2) !important;
+    backdrop-filter: blur(15px) !important;
+}
+
+.cardImageContainer .cardIndicators~.genre-overlay-container {
+    margin-top: clamp(24px, 7vw, 38px);
+}

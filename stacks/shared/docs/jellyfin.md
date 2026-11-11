@@ -1,7 +1,7 @@
 # Jellyfin : lecture des films, séries et musique
 
-Jellyfin utilise l’image dérivée `media-stack/jellyfin-abyss:local`, construite
-depuis l’image officielle dans le Compose partagé. Il rejoint `media-shared`
+Jellyfin utilise directement `lscr.io/linuxserver/jellyfin:latest` dans le
+Compose partagé. Il rejoint `media-shared`
 et publie `8096/tcp` et `7359/udp` par défaut.
 Consulter `/opt/media-stack/README.local.md` pour les URL de cet hôte. Le FQDN
 Traefik `jellyfin.arr.local` nécessite une entrée dans le DNS local.
@@ -110,36 +110,78 @@ les variables `JELLYFIN_CONNECT_*`, la clé dédiée et les correspondances de c
 
 ## Thème Abyss et Spotlight
 
-L’image locale `media-stack/jellyfin-abyss:local` est construite à partir de
-l’image officielle Jellyfin. Son Dockerfile ajoute le CSS Abyss et les trois
-fichiers Spotlight, puis charge Spotlight dans l’interface Web.
-Les sources et leur licence sont dans `shared/jellyfin-abyss/`. Le commit amont
-et les empreintes des fichiers sont enregistrés dans `SOURCE.json`.
+L’image LinuxServer exécute `jellyfin-abyss/init/abyss-spotlight.sh` via
+`/custom-cont-init.d` à chaque démarrage. Le hook copie les ressources locales
+vers `/usr/share/jellyfin/web/ui/` et injecte une seule balise de chargement
+Spotlight dans `index.html`. Aucun téléchargement n’est requis au démarrage.
+Les fichiers, leur licence, leur commit amont et leurs empreintes sont dans
+`shared/jellyfin-abyss/assets/` et `SOURCE.json`.
 
-Le script `configure-jellyfin.py` applique le CSS local via l’API Branding et
-configure le thème sombre du compte administrateur. Il utilise l’ordre d’accueil
-recommandé par Abyss pour Continuer la lecture, À suivre, Mes médias et Ajouts
-récents. Les réglages précédents sont sauvegardés une fois dans
-`shared/data/jellyfin/config/abyss-before.json`.
+Le script `configure-jellyfin.py` applique les imports locaux dans cet ordre :
 
-Depuis la racine du projet, reconstruire l’image après une mise à jour de
-Jellyfin, puis vérifier la configuration.
+```css
+/* ABYSS THEME START */
+@import url("/web/ui/abyss.css");
+@import url("/web/ui/abyss-je.css");
+/* ABYSS THEME END */
+```
+
+`abyss-je.css` ajoute les styles de compatibilité Jellyfin Enhanced. Le fichier
+amont indique une cible v11.3 ; l’extension installée est plus récente, donc
+certaines règles peuvent ne plus cibler tous ses éléments. Les personnalisations
+existantes sont conservées, y compris celles placées dans un ancien bloc géré.
+Pour les nouvelles règles de couleur ou d’arrondi, les ajouter après le bloc.
+
+Le compte administrateur utilise le thème sombre et l’ordre d’accueil recommandé :
+Continuer la lecture, À suivre, Mes médias, Ajouts récents. Les préférences
+précédentes restent sauvegardées une fois dans `config/abyss-before.json`.
+
+Depuis la racine du projet :
 
 ```sh
-python3 stacks/scripts/stack-compose.py shared build --pull jellyfin
+python3 stacks/scripts/stack-compose.py shared pull jellyfin
 python3 stacks/scripts/stack-compose.py shared up -d --no-deps jellyfin
 python3 stacks/scripts/configure-jellyfin.py
 ```
 
-`JELLYFIN_BASE_IMAGE` choisit l’image officielle de base et `JELLYFIN_IMAGE`
-le nom de l’image dérivée. Les fichiers du thème sont embarqués dans l’image.
-Les polices Google Sans et Material Icons référencées par le CSS sont chargées
-par le navigateur depuis leurs fournisseurs.
+`JELLYFIN_IMAGE` choisit l’image LinuxServer. Il n’y a plus d’image dérivée à
+construire. `PUID` et `PGID` contrôlent l’utilisateur applicatif ; l’initialisation
+s6 doit démarrer en root, sans `user`, `init: true` ou `cap_drop: ALL` ajoutés au
+service. Les polices référencées par le CSS restent téléchargées par le navigateur.
+Après application, recharger avec `Ctrl+F5`. Les clients utilisant Jellyfin Web
+bénéficient du thème ; les applications TV natives peuvent avoir leur propre interface.
 
-Après l’installation, recharger l’interface Web avec `Ctrl+F5`.
-Abyss et Spotlight s’appliquent aux clients qui utilisent cette interface Web.
+## Migration d’une ancienne installation
 
-[Installation Abyss](https://github.com/AumGupta/abyss-jellyfin/blob/main/SETUP.md)
+LinuxServer attend les XML directement dans `/config` et utilise `/config/data`
+comme répertoire de données. Une ancienne installation issue de l’image officielle
+ne peut pas être reprise en changeant uniquement l’image.
+
+Arrêter Jellyfin et sauvegarder son dossier de configuration avant la migration :
+
+```sh
+cd /opt/media-stack
+docker stop jellyfin
+backup_dir="/srv/backups/jellyfin-$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$backup_dir"
+cp -a stacks/shared/data/jellyfin/config "$backup_dir/config"
+python3 stacks/scripts/migrate-jellyfin-layout.py stacks/shared/data/jellyfin/config --offline
+python3 stacks/scripts/stack-compose.py shared up -d --no-deps jellyfin
+python3 stacks/scripts/configure-jellyfin.py
+```
+
+Exécuter cette procédure avec les droits nécessaires sur les fichiers locaux.
+`--offline` confirme l’arrêt du serveur et l’existence d’une sauvegarde vérifiée.
+Le script conserve les identifiants et les médias, déplace la base vers
+`config/data/data/jellyfin.db` et adapte les chemins internes des racines en base.
+Des liens conservent les anciens chemins des images, plugins et racines.
+Le cache est monté sous `/config/cache` et `/cache` pour garder les anciens
+chemins de transcodage. Une installation vierge ne nécessite pas cette migration.
+
+Après migration, vérifier les comptes, identifiants de bibliothèques, images,
+plugins et connexions Seerr/arr. Les fichiers médias restent en lecture seule.
+
+[Installation Abyss](https://github.com/AumGupta/abyss-jellyfin/blob/main/SETUP.md#docker)
 
 ## Dépôts d’extensions
 
