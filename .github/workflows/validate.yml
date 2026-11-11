@@ -19,7 +19,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check script syntax
         run: |
           sh -n ../homepage/scripts/start.sh
@@ -45,6 +45,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Test clean-data native core in an isolated Docker project
         run: sudo python3 scripts/test-initialization.py --docker --pull
