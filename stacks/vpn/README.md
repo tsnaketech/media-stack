@@ -22,6 +22,10 @@ includes the VPN by default; `--with-vpn` remains accepted for compatibility.
 
 ## Files and settings
 
+To reconcile VPN clients automatically after Docker starts, run
+`sudo python3 stacks/scripts/install-vpn-boot.py` from the project root.
+See [startup automation](../docs/boot.md) for behavior, logs and maintenance.
+
 - `docker-compose.yml`: service and Docker network.
 - `.env.example`: versionable template with English comments.
 - `.env`: local provider, protocol, and secrets; protect with mode `600`.

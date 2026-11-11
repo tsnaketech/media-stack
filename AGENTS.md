@@ -36,6 +36,8 @@ Every Compose declares `x-common-keys: &common-keys`; every service inherits it.
 
 Tests use `unittest`. Validate changed Compose files and run relevant automation tests. `python3 stacks/scripts/test-initialization.py --docker` checks the native core with isolated data and ports. Inspect affected containers, logs and routes after deployment. After recreating Gluetun, run `stacks/scripts/vpn-up.sh` to reconnect its three clients.
 
+`python3 stacks/scripts/install-vpn-boot.py` installs the systemd VPN reconciliation service. It runs after Docker starts, checks storage and tunnel readiness, and retries failures. See `stacks/docs/boot.md`; avoid rebooting the host for routine validation.
+
 ## Commit & Pull Request Guidelines
 
 Use concise imperative subjects, such as `music: configure album folders`. Describe affected stacks, behavior changes, validation and migration steps. Link relevant issues and include screenshots for interface changes.

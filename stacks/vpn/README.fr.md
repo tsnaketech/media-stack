@@ -2,6 +2,10 @@
 
 [English](README.md) | **Français**
 
+Pour raccorder automatiquement les clients VPN après le démarrage de Docker,
+exécuter `sudo python3 stacks/scripts/install-vpn-boot.py` depuis la racine du
+projet. Voir [le guide de démarrage](../docs/boot.md) pour les détails et journaux.
+
 Cette stack dédiée utilise le projet [passteque/gluetun](https://github.com/passteque/gluetun)
 et son image `qmcgaw/gluetun:latest`. Le changement de dépôt GitHub conserve les
 noms officiels des images Docker. Elle utilise le réseau externe `media-shared`, le volume

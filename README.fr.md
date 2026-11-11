@@ -54,6 +54,8 @@ restent exclus de Git.
 
 ## Documentation
 
+- [Démarrage automatique et raccordement VPN](stacks/docs/boot.md)
+
 - [Installation, droits et configuration des services](stacks/README.fr.md)
 - [Organisation et migration vers cette racine](docs/project-layout.md)
 - [Préparation Git et fichiers privés](stacks/docs/github.md)

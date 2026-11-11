@@ -1,0 +1,23 @@
+# Managed by media-stack.
+[Unit]
+Description=Reconcile media stack VPN clients after Docker starts
+Requires=docker.service
+Wants=network-online.target
+After=docker.service network-online.target
+PartOf=docker.service
+RequiresMountsFor=@PROJECT_ROOT@
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=@WORKING_ROOT@
+ExecStart=/usr/bin/python3 @RECONCILE_SCRIPT@
+Restart=on-failure
+RestartSec=30s
+TimeoutStartSec=8min
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=docker.service

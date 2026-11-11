@@ -55,6 +55,8 @@ backups are excluded from Git.
 
 Detailed deployment guides currently remain in French.
 
+- [Automatic startup and VPN reconciliation](stacks/docs/boot.md)
+
 - [Service installation, permissions, and configuration](stacks/README.md)
 - [Project layout and migration](docs/project-layout.md)
 - [Git preparation and local files](stacks/docs/github.md)
