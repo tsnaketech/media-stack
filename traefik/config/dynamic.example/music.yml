@@ -1,0 +1,19 @@
+http:
+  routers:
+    excalidraw:
+      rule: "Host(`excalidraw.homelab.local`)"
+      entryPoints:
+        - web
+      service: excalidraw
+      middlewares:
+        - security-headers
+
+  services:
+    excalidraw:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8089"
+        healthCheck:
+          path: /
+          interval: 30s
+          timeout: 5s

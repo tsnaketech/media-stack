@@ -1,0 +1,252 @@
+name: media-shared
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  environment: &environment
+    PUID: ${PUID:-1000}
+    PGID: ${PGID:-1000}
+    TZ: ${TZ:-Europe/Paris}
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  bazarr:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    networks:
+      - media-shared
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      <<: *environment
+      BAZARR_SETUP_ENABLED: ${BAZARR_SETUP_ENABLED:-true}
+      BAZARR_USERNAME: ${BAZARR_USERNAME:-admin}
+      BAZARR_PASSWORD: ${BAZARR_PASSWORD:-}
+      BAZARR_RADARR_URL: ${BAZARR_RADARR_URL:-http://radarr:7878}
+      BAZARR_RADARR_API_KEY: ${BAZARR_RADARR_API_KEY:-}
+      BAZARR_SONARR_URL: ${BAZARR_SONARR_URL:-http://sonarr:8989}
+      BAZARR_SONARR_API_KEY: ${BAZARR_SONARR_API_KEY:-}
+      BAZARR_LANGUAGE_PROFILE: ${BAZARR_LANGUAGE_PROFILE:-Français}
+    volumes:
+      - ./data/bazarr:/config
+      - type: bind
+        source: ${BAZARR_MOVIES_DIR:-/media/movies}
+        target: /movies
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${BAZARR_TV_DIR:-/media/tv}
+        target: /tv
+        bind:
+          create_host_path: false
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${BAZARR_PORT:-6767}:6767"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:6767/"]
+      start_period: 60s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  jellyfin:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    networks:
+      - media-shared
+    image: ${JELLYFIN_IMAGE:-media-stack/jellyfin-abyss:local}
+    build:
+      context: ./jellyfin-abyss
+      args:
+        JELLYFIN_BASE_IMAGE: ${JELLYFIN_BASE_IMAGE:-jellyfin/jellyfin:latest}
+    container_name: jellyfin
+    init: true
+    user: "${PUID:-1000}:${PGID:-1000}"
+    cap_drop:
+      - ALL
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      JELLYFIN_PublishedServerUrl: ${JELLYFIN_PUBLIC_URL:-http://jellyfin.arr.local}
+      JELLYFIN_SETUP_ENABLED: ${JELLYFIN_SETUP_ENABLED:-true}
+      JELLYFIN_PLUGIN_REPOSITORIES_ENABLED: ${JELLYFIN_PLUGIN_REPOSITORIES_ENABLED:-true}
+      JELLYFIN_ENHANCED_REPOSITORY: ${JELLYFIN_ENHANCED_REPOSITORY-https://raw.githubusercontent.com/n00bcodr/jellyfin-plugins/main/manifest.json}
+      JELLYFIN_SERVER_NAME: ${JELLYFIN_SERVER_NAME:-Homelab}
+      JELLYFIN_ADMIN_USERNAME: ${JELLYFIN_ADMIN_USERNAME:-admin}
+      JELLYFIN_ADMIN_PASSWORD: ${JELLYFIN_ADMIN_PASSWORD:-}
+      JELLYFIN_API_KEY: ${JELLYFIN_API_KEY:-}
+      JELLYFIN_CONNECT_ENABLED: ${JELLYFIN_CONNECT_ENABLED:-true}
+      JELLYFIN_CONNECT_URL: ${JELLYFIN_CONNECT_URL:-http://jellyfin:8096}
+      JELLYFIN_CONNECT_API_KEY: ${JELLYFIN_CONNECT_API_KEY:-}
+      JELLYFIN_CONNECT_LIDARR_ENABLED: ${JELLYFIN_CONNECT_LIDARR_ENABLED:-true}
+      JELLYFIN_CONNECT_LIDARR_MAP_TO: ${JELLYFIN_CONNECT_LIDARR_MAP_TO:-/media/music}
+      JELLYFIN_CONNECT_RADARR_ENABLED: ${JELLYFIN_CONNECT_RADARR_ENABLED:-true}
+      JELLYFIN_CONNECT_SONARR_ENABLED: ${JELLYFIN_CONNECT_SONARR_ENABLED:-true}
+      JELLYFIN_CONNECT_RADARR_MAP_FROM: ${JELLYFIN_CONNECT_RADARR_MAP_FROM:-/movies}
+      JELLYFIN_CONNECT_RADARR_MAP_TO: ${JELLYFIN_CONNECT_RADARR_MAP_TO:-/media/movies}
+      JELLYFIN_CONNECT_SONARR_MAP_FROM: ${JELLYFIN_CONNECT_SONARR_MAP_FROM:-/tv}
+      JELLYFIN_CONNECT_SONARR_MAP_TO: ${JELLYFIN_CONNECT_SONARR_MAP_TO:-/media/tv}
+      JELLYFIN_MOVIES_NAME: ${JELLYFIN_MOVIES_NAME:-Films}
+      JELLYFIN_TV_NAME: ${JELLYFIN_TV_NAME:-Séries}
+      JELLYFIN_MUSIC_NAME: ${JELLYFIN_MUSIC_NAME:-Musique}
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${JELLYFIN_PORT:-8096}:8096"
+      - "${WEB_BIND_IP:-0.0.0.0}:${JELLYFIN_DISCOVERY_PORT:-7359}:7359/udp"
+    volumes:
+      - ./data/jellyfin/config:/config
+      - ./data/jellyfin/cache:/cache
+      - type: bind
+        source: ${JELLYFIN_MOVIES_DIR:-/media/movies}
+        target: /media/movies
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${JELLYFIN_TV_DIR:-/media/tv}
+        target: /media/tv
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${JELLYFIN_MUSIC_DIR:-/media/music}
+        target: /media/music
+        read_only: true
+        bind:
+          create_host_path: false
+
+  seerr:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    cap_drop:
+      - ALL
+    init: true
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      LOG_LEVEL: ${SEERR_LOG_LEVEL:-info}
+      PORT: "5055"
+      SEERR_BOOTSTRAP_WITH_JELLYFIN: ${SEERR_BOOTSTRAP_WITH_JELLYFIN:-false}
+      SEERR_SETUP_ENABLED: ${SEERR_SETUP_ENABLED:-true}
+      SEERR_APPLICATION_TITLE: ${SEERR_APPLICATION_TITLE:-Seerr}
+      SEERR_APPLICATION_URL: ${SEERR_APPLICATION_URL:-http://seerr.arr.local}
+      SEERR_LOCALE: ${SEERR_LOCALE:-fr}
+      SEERR_DISCOVER_REGION: ${SEERR_DISCOVER_REGION:-FR}
+      SEERR_STREAMING_REGION: ${SEERR_STREAMING_REGION:-FR}
+      SEERR_LOCAL_LOGIN: ${SEERR_LOCAL_LOGIN:-true}
+      SEERR_MEDIA_SERVER_LOGIN: ${SEERR_MEDIA_SERVER_LOGIN:-true}
+      SEERR_CONFIGURE_RADARR: ${SEERR_CONFIGURE_RADARR:-true}
+      SEERR_RADARR_NAME: ${SEERR_RADARR_NAME:-Radarr}
+      SEERR_RADARR_URL: ${SEERR_RADARR_URL:-http://radarr:7878}
+      SEERR_RADARR_API_KEY: ${SEERR_RADARR_API_KEY:-}
+      SEERR_RADARR_PROFILE: ${SEERR_RADARR_PROFILE:-1080p Français}
+      SEERR_RADARR_ROOT_FOLDER: ${SEERR_RADARR_ROOT_FOLDER:-/movies}
+      SEERR_RADARR_DEFAULT: ${SEERR_RADARR_DEFAULT:-true}
+      SEERR_RADARR_SYNC_ENABLED: ${SEERR_RADARR_SYNC_ENABLED:-true}
+      SEERR_RADARR_PREVENT_SEARCH: ${SEERR_RADARR_PREVENT_SEARCH:-false}
+      SEERR_RADARR_MINIMUM_AVAILABILITY: ${SEERR_RADARR_MINIMUM_AVAILABILITY:-released}
+      SEERR_CONFIGURE_SONARR: ${SEERR_CONFIGURE_SONARR:-true}
+      SEERR_SONARR_NAME: ${SEERR_SONARR_NAME:-Sonarr}
+      SEERR_SONARR_URL: ${SEERR_SONARR_URL:-http://sonarr:8989}
+      SEERR_SONARR_API_KEY: ${SEERR_SONARR_API_KEY:-}
+      SEERR_SONARR_PROFILE: ${SEERR_SONARR_PROFILE:-1080p Français}
+      SEERR_SONARR_ROOT_FOLDER: ${SEERR_SONARR_ROOT_FOLDER:-/tv}
+      SEERR_SONARR_DEFAULT: ${SEERR_SONARR_DEFAULT:-true}
+      SEERR_SONARR_SYNC_ENABLED: ${SEERR_SONARR_SYNC_ENABLED:-true}
+      SEERR_SONARR_PREVENT_SEARCH: ${SEERR_SONARR_PREVENT_SEARCH:-false}
+      SEERR_SONARR_SERIES_TYPE: ${SEERR_SONARR_SERIES_TYPE:-standard}
+      SEERR_SONARR_SEASON_FOLDERS: ${SEERR_SONARR_SEASON_FOLDERS:-true}
+      SEERR_MEDIA_SERVER_TYPE: ${SEERR_MEDIA_SERVER_TYPE:-jellyfin}
+      SEERR_MEDIA_SERVER_URL: ${SEERR_MEDIA_SERVER_URL:-}
+      SEERR_MEDIA_SERVER_API_KEY: ${SEERR_MEDIA_SERVER_API_KEY:-}
+      SEERR_MEDIA_SERVER_EXTERNAL_URL: ${SEERR_MEDIA_SERVER_EXTERNAL_URL:-}
+      SEERR_MEDIA_SERVER_LIBRARY_IDS: ${SEERR_MEDIA_SERVER_LIBRARY_IDS:-}
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${SEERR_PORT:-5055}:5055"
+    volumes:
+      - ./data/seerr:/app/config
+    networks:
+      - media-shared
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5055/api/v1/settings/public"]
+      start_period: 60s
+      timeout: 5s
+      interval: 15s
+      retries: 5
+
+  profilarr:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    image: ghcr.io/dictionarry-hub/profilarr:latest
+    container_name: profilarr
+    post_start:
+      - command: ["/bin/bash", "/opt/configure-profilarr-auth.sh"]
+        user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      UMASK: "${UMASK:-022}"
+      TZ: ${TZ:-Europe/Paris}
+      AUTH: ${PROFILARR_AUTH:-on}
+      PROFILARR_USERNAME: ${PROFILARR_USERNAME:-admin}
+      PROFILARR_PASSWORD: ${PROFILARR_PASSWORD:-}
+      PROFILARR_CURRENT_PASSWORD: ${PROFILARR_CURRENT_PASSWORD:-}
+      PROFILARR_TMDB_API_TOKEN: ${PROFILARR_TMDB_API_TOKEN:-}
+      PROFILARR_SETUP_ENABLED: ${PROFILARR_SETUP_ENABLED:-false}
+      PROFILARR_DATABASE_SETUP_ENABLED: ${PROFILARR_DATABASE_SETUP_ENABLED:-true}
+      PROFILARR_DATABASE_NAME: ${PROFILARR_DATABASE_NAME:-Dictionarry}
+      PROFILARR_DATABASE_URL: ${PROFILARR_DATABASE_URL:-https://github.com/Dictionarry-Hub/database}
+      PROFILARR_PROFILES: ${PROFILARR_PROFILES:-1080p Français}
+      PROFILARR_DEFAULT_PROFILE: ${PROFILARR_DEFAULT_PROFILE:-1080p Français}
+      PROFILARR_FRENCH_PROFILES_ENABLED: ${PROFILARR_FRENCH_PROFILES_ENABLED:-false}
+      PROFILARR_FRENCH_APPLY_EXISTING: ${PROFILARR_FRENCH_APPLY_EXISTING:-false}
+      PROFILARR_RADARR_URL: ${PROFILARR_RADARR_URL:-http://radarr:7878}
+      PROFILARR_SONARR_URL: ${PROFILARR_SONARR_URL:-http://sonarr:8989}
+      PROFILARR_RADARR_API_KEY: ${PROFILARR_RADARR_API_KEY:-}
+      PROFILARR_SONARR_API_KEY: ${PROFILARR_SONARR_API_KEY:-}
+      ORIGIN: ${PROFILARR_ORIGIN:-http://profilarr.arr.local}
+      HOST: 0.0.0.0
+      PORT: "6868"
+      PARSER_HOST: profilarr-parser
+      PARSER_PORT: "5000"
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${PROFILARR_PORT:-6868}:6868"
+    volumes:
+      - ./data/profilarr:/config
+      - ../scripts/configure-profilarr-auth.sh:/opt/configure-profilarr-auth.sh:ro
+    networks:
+      - profilarr-internal
+      - media-shared
+    depends_on:
+      profilarr-parser:
+        condition: service_healthy
+
+  profilarr-parser:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    image: ghcr.io/dictionarry-hub/profilarr-parser:latest
+    container_name: profilarr-parser
+    expose:
+      - "5000"
+    networks:
+      - profilarr-internal
+
+networks:
+  media-shared:
+    name: media-shared
+    external: true
+  profilarr-internal:

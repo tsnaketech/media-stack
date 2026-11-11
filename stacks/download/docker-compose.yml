@@ -1,0 +1,221 @@
+name: media-download
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  environment: &environment
+    PUID: ${PUID:-1000}
+    PGID: ${PGID:-1000}
+    TZ: ${TZ:-Europe/Paris}
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  jdownloader:
+    <<: *common-keys
+    image: jlesage/jdownloader-2:${JDOWNLOADER_IMAGE_TAG:-latest}
+    container_name: jdownloader
+    network_mode: "container:gluetun"
+    environment:
+      USER_ID: ${PUID:-1000}
+      GROUP_ID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/Paris}
+      LANG: ${JDOWNLOADER_LANG:-fr_FR.UTF-8}
+      UMASK: ${JDOWNLOADER_UMASK:-0002}
+      KEEP_APP_RUNNING: "1"
+      JDOWNLOADER_MAX_MEM: ${JDOWNLOADER_MAX_MEM:-256M}
+      JDOWNLOADER_DOWNLOAD_PATH: ${JDOWNLOADER_DOWNLOAD_PATH:-/output}
+      JDOWNLOADER_SUBFOLDERS: ${JDOWNLOADER_SUBFOLDERS:-false}
+      DISPLAY_WIDTH: "1280"
+      DISPLAY_HEIGHT: "720"
+      WEB_AUTHENTICATION: "1"
+      SECURE_CONNECTION: "1"
+      WEB_AUTHENTICATION_USERNAME: ${JDOWNLOADER_USERNAME:-admin}
+      WEB_AUTHENTICATION_PASSWORD: ${JDOWNLOADER_PASSWORD:-}
+      WEB_FILE_MANAGER: "0"
+      WEB_TERMINAL: "0"
+      VNC_LISTENING_PORT: "-1"
+    volumes:
+      - ./data/jdownloader:/config
+      - ../scripts/configure-jdownloader.sh:/etc/cont-init.d/54-configure-library.sh:ro
+      - type: bind
+        source: ${SHARED_DOWNLOADS_DIR:-/downloads}/direct
+        target: /output
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD-SHELL", "pidof java >/dev/null && curl --insecure --fail --silent --output /dev/null https://127.0.0.1:5800/"]
+      start_period: 120s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  qbittorrent:
+    <<: *common-keys
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      <<: *environment
+      WEBUI_PORT: 8080
+      QBITTORRENT_INIT_USERNAME: ${QBITTORRENT_INIT_USERNAME:-admin}
+      QBITTORRENT_INIT_PASSWORD: ${QBITTORRENT_INIT_PASSWORD:-}
+      TORRENTING_PORT: 6881
+    volumes:
+      - ./data/qbittorrent:/config
+      - ${SHARED_DOWNLOADS_DIR:-/downloads}:/downloads
+    # Gluetun owns DNS, published ports and the network namespace.
+    network_mode: "container:gluetun"
+
+  sabnzbd:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    networks:
+      - media-shared
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      <<: *environment
+      SABNZBD_EXTRA_CATEGORIES: ${SABNZBD_EXTRA_CATEGORIES:-}
+      SABNZBD_SETUP_ENABLED: ${SABNZBD_SETUP_ENABLED:-true}
+      SABNZBD_USERNAME: ${SABNZBD_USERNAME:-admin}
+      SABNZBD_PASSWORD: ${SABNZBD_PASSWORD:-}
+      SABNZBD_ALLOWED_HOSTS: ${SABNZBD_ALLOWED_HOSTS:-sabnzbd,sabnzbd.arr.local,localhost}
+      SABNZBD_MIN_FREE_SPACE: ${SABNZBD_MIN_FREE_SPACE:-2G}
+      SABNZBD_SERVER_HOST: ${SABNZBD_SERVER_HOST:-}
+      SABNZBD_SERVER_PORT: ${SABNZBD_SERVER_PORT:-563}
+      SABNZBD_SERVER_SSL: ${SABNZBD_SERVER_SSL:-true}
+      SABNZBD_SERVER_USERNAME: ${SABNZBD_SERVER_USERNAME:-}
+      SABNZBD_SERVER_PASSWORD: ${SABNZBD_SERVER_PASSWORD:-}
+      SABNZBD_SERVER_CONNECTIONS: ${SABNZBD_SERVER_CONNECTIONS:-8}
+    volumes:
+      - ./data/sabnzbd:/config
+      - ${SHARED_DOWNLOADS_DIR:-/downloads}:/downloads
+      - ../scripts/configure-sabnzbd.py:/opt/configure-sabnzbd.py:ro
+      - ../scripts/configure-sabnzbd.sh:/custom-cont-init.d/10-configure-sabnzbd:ro
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${SABNZBD_PORT:-8085}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/api?mode=version&output=json"]
+      start_period: 60s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  joal:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    networks:
+      - media-shared
+    image: anthonyraymond/joal:${JOAL_IMAGE_TAG:-2.1.37}
+    container_name: joal
+    init: true
+    user: "${PUID:-1000}:${PGID:-1000}"
+    cap_drop:
+      - ALL
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      JAVA_TOOL_OPTIONS: ${JOAL_JAVA_OPTIONS:--Xms64m -Xmx256m -Duser.home=/data}
+    command:
+      - --joal-conf=/data
+      - --spring.main.web-environment=true
+      - --server.port=8088
+      - --joal.ui.path.prefix=${JOAL_UI_PATH:-changeThisPathBeforeUse}
+      - --joal.ui.secret-token=${JOAL_UI_SECRET_TOKEN:-}
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${JOAL_PORT:-8088}:8088"
+    volumes:
+      - ./data/joal:/data
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8088"]
+      start_period: 60s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  qui:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    networks:
+      - media-shared
+    image: ghcr.io/autobrr/qui:latest
+    container_name: qui
+    init: true
+    user: "${PUID:-1000}:${PGID:-1000}"
+    cap_drop:
+      - ALL
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      QUI__HOST: 0.0.0.0
+      QUI__PORT: "7476"
+      QUI__LOG_LEVEL: ${QUI_LOG_LEVEL:-INFO}
+      QUI__SESSION_SECRET: ${QUI_SESSION_SECRET:-}
+      QUI__SESSION_COOKIE_SECURE: ${QUI_SESSION_COOKIE_SECURE:-false}
+      QUI_SETUP_ENABLED: ${QUI_SETUP_ENABLED:-true}
+      QUI_USERNAME: ${QUI_USERNAME:-admin}
+      QUI_PASSWORD: ${QUI_PASSWORD:-}
+      QUI_INSTANCE_NAME: ${QUI_INSTANCE_NAME:-qBittorrent}
+      QUI_QBITTORRENT_URL: ${QUI_QBITTORRENT_URL:-http://qbittorrent:8080}
+      QUI_QBITTORRENT_USERNAME: ${QUI_QBITTORRENT_USERNAME:-}
+      QUI_QBITTORRENT_PASSWORD: ${QUI_QBITTORRENT_PASSWORD:-}
+      QUI_SONARR_ENABLED: ${QUI_SONARR_ENABLED:-true}
+      QUI_SONARR_URL: ${QUI_SONARR_URL:-http://sonarr:8989}
+      QUI_SONARR_API_KEY: ${QUI_SONARR_API_KEY:-}
+      QUI_RADARR_ENABLED: ${QUI_RADARR_ENABLED:-true}
+      QUI_RADARR_URL: ${QUI_RADARR_URL:-http://radarr:7878}
+      QUI_RADARR_API_KEY: ${QUI_RADARR_API_KEY:-}
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${QUI_PORT:-7476}:7476"
+    volumes:
+      - ./data/qui:/config
+
+  metube:
+    <<: *common-keys
+    image: ghcr.io/alexta69/metube:latest
+    container_name: metube
+    user: "${PUID:-1000}:${PGID:-1000}"
+    cap_drop:
+      - ALL
+    network_mode: "container:gluetun"
+    environment:
+      <<: *environment
+      CHOWN_DIRS: "false"
+      DOWNLOAD_DIR: /videos
+      AUDIO_DOWNLOAD_DIR: /downloads/audio
+      TEMP_DIR: /downloads/.tmp
+      STATE_DIR: /config
+      UMASK: ${METUBE_UMASK:-002}
+      LOGLEVEL: ${METUBE_LOG_LEVEL:-INFO}
+      DEFAULT_THEME: ${METUBE_THEME:-auto}
+      MAX_CONCURRENT_DOWNLOADS: ${METUBE_MAX_CONCURRENT_DOWNLOADS:-2}
+      DELETE_FILE_ON_TRASHCAN: ${METUBE_DELETE_FILE_ON_TRASHCAN:-false}
+      CUSTOM_DIRS: "true"
+      CREATE_CUSTOM_DIRS: "true"
+      ALLOW_YTDL_OPTIONS_OVERRIDES: "false"
+      YTDL_OPTIONS: ${METUBE_YTDL_OPTIONS:-{}}
+    volumes:
+      - ./data/metube:/config
+      - type: bind
+        source: ${METUBE_VIDEO_DIR:-/downloads/youtube/videos}
+        target: /videos
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${SHARED_DOWNLOADS_DIR:-/downloads}/youtube
+        target: /downloads
+        bind:
+          create_host_path: false
+
+networks:
+  media-shared:
+    name: media-shared
+    external: true

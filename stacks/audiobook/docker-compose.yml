@@ -1,0 +1,28 @@
+name: media-audiobook
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  dns:
+    - ${DNS_PRIMARY:-1.1.1.1}
+    - ${DNS_SECONDARY:-1.0.0.1}
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  audiobookshelf:
+    <<: *common-keys
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+    ports:
+      - "13378:80"
+    volumes:
+      - ./data/config:/config
+      - ./data/metadata:/metadata
+      - ${LIBRARY_DIR:-/media/audiobooks}:${AUDIOBOOKSHELF_ROOT_FOLDER:-/audiobooks}:ro
+      - ./data/podcasts:/podcasts

@@ -1,0 +1,14 @@
+http:
+  routers:
+    profilarr:
+      rule: "Host(`profilarr.arr.local`)"
+      entryPoints:
+        - web
+      service: profilarr
+      middlewares:
+        - security-headers
+  services:
+    profilarr:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:6868"

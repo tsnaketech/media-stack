@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/AumGupta/abyss-jellyfin",
+  "commit": "2f809171ed7f3a34b5e78297608b5f2b63dd3f0f",
+  "sha256": {
+    "abyss.css": "8d611a381caf8a7544977eaeccff7cd9c23c0c9dd9834a345bc628c95a41f1dc",
+    "spotlight.html": "63431dcadf017e254022f6f87e6dcb32129b06d402bde2052e218a40a82f5449",
+    "spotlight.css": "f1f7da09ca1cece062221115d15e7002dea7148a65ddf72ab3c5e95aeb4faded",
+    "spotlight-loader.js": "827497adef3f82e3b71e3dd0fde7fbdb17761bcdf7244565bbc903f2f5ec1b6e",
+    "LICENSE": "cb40fd5a6eb4d181e9fb9a1166dc1414c8231aeaaaf5a6a266a61ee52fdc4040"
+  }
+}

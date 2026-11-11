@@ -1,0 +1,14 @@
+http:
+  routers:
+    bazarr:
+      rule: "Host(`bazarr.arr.local`)"
+      entryPoints:
+        - web
+      service: bazarr
+      middlewares:
+        - security-headers
+  services:
+    bazarr:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:6767"

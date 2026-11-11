@@ -1,0 +1,127 @@
+# Homelab média
+
+Le [tableau de bord Homepage](http://homepage.arr.local) regroupe les interfaces par usage.
+
+Point d’accès local aux interfaces, aux commandes et à la documentation du LXC
+**media-stack — SERVER_IP**.
+
+[Lecture](#lecture) · [Bibliothèques et demandes](#bibliothèques-et-demandes) ·
+[Téléchargements](#téléchargements) · [Indexeurs et réglages](#indexeurs-et-réglages) ·
+[Administration](#administration) · [Stockage et configuration](#stockage-et-configuration) ·
+[Commandes](#commandes) · [Documentation](#documentation)
+
+Les noms `*.arr.local` nécessitent une résolution DNS locale vers ce serveur.
+La colonne **Accès IP** ouvre directement le port du service, sans dépendre du DNS.
+JDownloader utilise **HTTPS** avec des certificats locaux auto-signés : Firefox peut
+nécessiter leur acceptation, en accès direct comme via Traefik. Les autres interfaces
+listées utilisent HTTP. Les mentions **VPN** concernent les connexions sortantes.
+
+## Lecture
+
+| Service | Interface locale | Accès IP | Référence |
+|---|---|---|---|
+| Jellyfin | [jellyfin.arr.local](http://jellyfin.arr.local) | [8096](http://SERVER_IP:8096) | [Ouvrir](stacks/shared/docs/jellyfin.md) |
+| Navidrome | [navidrome.arr.local](http://navidrome.arr.local) | [4533](http://SERVER_IP:4533) | [Ouvrir](stacks/music/README.md) |
+| Audiobookshelf | [audiobookshelf.arr.local](http://audiobookshelf.arr.local) | [13378](http://SERVER_IP:13378) | — |
+| Calibre-Web | [books.arr.local](http://books.arr.local) | [8083](http://SERVER_IP:8083) | [Ouvrir](stacks/book/README.md) |
+| Shelfmark Lite | [shelfmark.arr.local](http://shelfmark.arr.local) | [8084](http://SERVER_IP:8084) | [Ouvrir](stacks/book/README.md) |
+
+## Bibliothèques et demandes
+
+| Service | Interface locale | Accès IP | Référence |
+|---|---|---|---|
+| Seerr | [seerr.arr.local](http://seerr.arr.local) | [5055](http://SERVER_IP:5055) | [Ouvrir](stacks/shared/docs/seerr.md) |
+| Radarr — films | [radarr.arr.local](http://radarr.arr.local) | [7878](http://SERVER_IP:7878) | [Ouvrir](stacks/docs/media-management.md) |
+| Sonarr — séries | [sonarr.arr.local](http://sonarr.arr.local) | [8989](http://SERVER_IP:8989) | [Ouvrir](stacks/docs/media-management.md) |
+| Lidarr — musique | [lidarr.arr.local](http://lidarr.arr.local) | [8686](http://SERVER_IP:8686) | [Ouvrir](stacks/music/README.md) |
+
+## Téléchargements
+
+| Service | Interface locale | Accès IP | Référence |
+|---|---|---|---|
+| qBittorrent · VPN | [qbittorrent.arr.local](http://qbittorrent.arr.local) | [8080](http://SERVER_IP:8080) | [Ouvrir](stacks/docs/download-clients.md) |
+| SABnzbd · Usenet | [sabnzbd.arr.local](http://sabnzbd.arr.local) | [8085](http://SERVER_IP:8085) | [Ouvrir](stacks/download/sabnzbd.md) |
+| JDownloader 2 · VPN / HTTPS | [jdownloader.arr.local](https://jdownloader.arr.local) | [5800](https://SERVER_IP:5800) | [Ouvrir](stacks/download/docs/jdownloader.md) |
+| MeTube · VPN | [metube.arr.local](http://metube.arr.local) | [8081](http://SERVER_IP:8081) | [Ouvrir](stacks/download/docs/metube.md) |
+| qui — gestion qBittorrent | [qui.arr.local](http://qui.arr.local) | [7476](http://SERVER_IP:7476) | [Ouvrir](stacks/download/docs/qui.md) |
+| JOAL | [joal.arr.local](http://joal.arr.local/changeThisPathBeforeUse/ui/) | [8088](http://SERVER_IP:8088/changeThisPathBeforeUse/ui/) | [Ouvrir](stacks/download/docs/joal.md) |
+
+## Indexeurs et réglages
+
+| Service | Interface locale | Accès IP | Référence |
+|---|---|---|---|
+| Prowlarr — indexeurs | [prowlarr.arr.local](http://prowlarr.arr.local) | [9696](http://SERVER_IP:9696) | [Ouvrir](stacks/indexer/README.md) |
+| Profilarr — profils | [profilarr.arr.local](http://profilarr.arr.local) | [6868](http://SERVER_IP:6868) | [Ouvrir](stacks/shared/docs/profilarr.md) |
+| Bazarr — sous-titres | [bazarr.arr.local](http://bazarr.arr.local) | [6767](http://SERVER_IP:6767) | [Ouvrir](stacks/shared/docs/bazarr.md) |
+
+## Administration
+
+| Service | Interface locale | Accès IP | Référence |
+|---|---|---|---|
+| Homepage — tableau de bord | [homepage.arr.local](http://homepage.arr.local) | [3002](http://SERVER_IP:3002) | [Guide](homepage/README.md) |
+| Dozzle — journaux | [dozzle.arr.local](http://dozzle.arr.local) | [9999](http://SERVER_IP:9999) | [Guide](dozzle/README.md) |
+| Arcane — conteneurs | [arcane.arr.local](http://arcane.arr.local) | [3552](http://SERVER_IP:3552) | [Ouvrir](arcane/docker-compose.yml) |
+| Traefik — dashboard | — | [8888](http://SERVER_IP:8888/dashboard/) | [Ouvrir](traefik/config/traefik.yml) |
+
+FlareSolverr et Gluetun n’ont pas d’interface utilisateur publiée. FlareSolverr
+s’utilise via Prowlarr (`http://flaresolverr:8191` entre conteneurs,
+`http://127.0.0.1:8191` depuis le LXC) ; voir son [guide](stacks/indexer/docs/flaresolverr.md).
+Gluetun fournit le VPN Proton Plus/WireGuard à qBittorrent, MeTube et JDownloader ;
+voir les [contrôles VPN](stacks/vpn/README.md).
+
+## Stockage et configuration
+
+| Usage | Chemin sur le LXC | Réglage ou documentation |
+|---|---|---|
+| Bibliothèques | `/media/{movies,tv,music,books,audiobooks}` | [Montage mp0 et permissions](stacks/docs/permissions.md) |
+| Téléchargements communs | `/downloads` | `SHARED_DOWNLOADS_DIR` — [montage mp1](stacks/docs/downloads-storage.md) |
+| Vidéos JDownloader | `/downloads/direct`, sans sous-dossier automatique | `JDOWNLOADER_DOWNLOAD_PATH=/output`, `JDOWNLOADER_SUBFOLDERS=false` |
+| Vidéos MeTube | `/downloads/youtube/videos` | `METUBE_VIDEO_DIR` |
+| Audio MeTube | `/downloads/youtube/audio` | [Stockage MeTube](stacks/download/docs/metube.md#stockage) |
+| Ancienne destination JDownloader | `/downloads/direct` | Reste montée sous `/output` pour les anciens paquets |
+| Données persistantes | `stacks/<stack>/data/` | Sauvegarder séparément du code |
+| Rapports locaux | `reports/` | [Ouvrir le répertoire](reports/) |
+
+Les montages Proxmox sont `/mnt/share/library` → `/media` (`mp0`) et
+`/mnt/share/downloads` → `/downloads` (`mp1`). L’ancien `/opt/downloads` a été
+supprimé après migration vérifiée ; il n’est plus utilisé.
+
+Les comptes sont conservés dans les `.env` privés de leur stack. Pour JDownloader,
+SABnzbd et qui : `stacks/download/.env`. Le VPN, ses secrets et les ports de
+qBittorrent, MeTube et JDownloader se règlent dans `stacks/vpn/.env`.
+JOAL nécessite le chemin complet indiqué dans ses liens ci-dessus.
+Les fournisseurs Usenet et les comptes d’hébergeurs se configurent séparément.
+
+## Commandes
+
+À exécuter depuis `/opt/media-stack` :
+
+```sh
+./stacks/scripts/stacks.sh validate
+./stacks/scripts/stacks.sh status
+./stacks/scripts/vpn-up.sh
+python3 stacks/scripts/check-services.py --with-infra --proxy-domain arr.local
+```
+
+Après toute recréation de Gluetun, `vpn-up.sh` reconnecte ses trois clients au
+nouvel espace réseau. Pour inclure Traefik, Arcane, Dozzle et Homepage dans l’état des stacks :
+`./stacks/scripts/stacks.sh status --with-infra`.
+
+## Documentation
+
+| Besoin | Guide |
+|---|---|
+| Structure du dépôt et stacks | [Services média](stacks/README.md) |
+| Première installation, autre environnement | [Initialisation et portabilité](stacks/docs/initialization.md) |
+| Exploitation des stacks | [Déploiement](stacks/docs/deployment.md) |
+| Droits Proxmox, LXC et Samba | [Permissions](stacks/docs/permissions.md) |
+| Stockage partagé des téléchargements | [Montage et migration](stacks/docs/downloads-storage.md) |
+| Comptes et authentification arr | [Authentification](stacks/docs/authentication.md) |
+| Clients de téléchargement et catégories | [Configuration des clients](stacks/docs/download-clients.md) |
+| Notifications arr vers Jellyfin | [Connect Jellyfin](stacks/shared/docs/arr-connect.md) |
+| VPN et périphérique TUN | [Gluetun](stacks/vpn/README.md) · [Proton VPN](stacks/vpn/protonvpn.md) · [TUN dans le LXC](stacks/docs/proxmox-tun.md) |
+| Publication du code sur GitHub | [Préparation du dépôt](stacks/docs/github.md) |
+
+Le dépôt Git est enraciné dans `/opt/media-stack` et regroupe les stacks média
+et leur infrastructure. Ce README conserve les adresses propres à cet hôte et
+reste exclu de Git. Le [README public](README.md) décrit l’organisation du projet.

@@ -1,0 +1,14 @@
+http:
+  routers:
+    seerr:
+      rule: "Host(`seerr.arr.local`)"
+      entryPoints:
+        - web
+      service: seerr
+      middlewares:
+        - security-headers
+  services:
+    seerr:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:5055"

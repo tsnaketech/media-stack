@@ -1,0 +1,27 @@
+title: Homelab média
+language: fr
+theme: dark
+color: slate
+headerStyle: clean
+statusStyle: dot
+hideVersion: true
+target: _blank
+layout:
+  Lecture:
+    style: row
+    columns: 3
+  Bibliothèques et demandes:
+    style: row
+    columns: 3
+  Téléchargements:
+    style: row
+    columns: 3
+  Indexeurs et réglages:
+    style: row
+    columns: 3
+  Indexeurs:
+    style: row
+    columns: 3
+  Administration:
+    style: row
+    columns: 3

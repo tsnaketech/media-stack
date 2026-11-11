@@ -1,0 +1,14 @@
+http:
+  routers:
+    sabnzbd:
+      rule: "Host(`sabnzbd.arr.local`)"
+      entryPoints:
+        - web
+      service: sabnzbd
+      middlewares:
+        - security-headers
+  services:
+    sabnzbd:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8085"

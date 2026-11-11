@@ -1,0 +1,61 @@
+name: media-movie
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  dns:
+    - ${DNS_PRIMARY:-1.1.1.1}
+    - ${DNS_SECONDARY:-1.0.0.1}
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  radarr:
+    <<: *common-keys
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    post_start:
+      - command: ["/bin/bash", "/opt/configure-arr-auth.sh"]
+        user: "${PUID:-1000}:${PGID:-1000}"
+        environment:
+          ARR_AUTH_API_URL: http://127.0.0.1:7878/api/v3/config/host
+      - command: ["/bin/bash", "/opt/configure-arr-root.sh"]
+        user: "${PUID:-1000}:${PGID:-1000}"
+        environment:
+          ARR_ROOT_API_URL: http://127.0.0.1:7878/api/v3/rootfolder
+          ARR_ROOT_KIND: radarr
+      - command: ["/bin/bash", "/opt/configure-arr-media.sh"]
+        user: "${PUID:-1000}:${PGID:-1000}"
+        environment:
+          ARR_MEDIA_API_URL: http://127.0.0.1:7878/api/v3/config/mediamanagement
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/Paris}
+      RADARR__AUTH__METHOD: ${ARR_AUTH_METHOD:-Forms}
+      RADARR__AUTH__REQUIRED: ${ARR_AUTH_REQUIRED:-DisabledForLocalAddresses}
+      RADARR__SERVER__TRUSTEDNETWORKS: ${ARR_TRUSTED_PROXIES:-}
+      RADARR__SERVER__ALLOWEDHOSTS: ${ARR_ALLOWED_HOSTS:-localhost;127.0.0.1;radarr;radarr.arr.local}
+      ARR_AUTH_USERNAME: ${ARR_AUTH_USERNAME:-}
+      ARR_AUTH_PASSWORD: ${ARR_AUTH_PASSWORD:-}
+      ARR_ROOT_FOLDER: ${ARR_ROOT_FOLDER:-/movies}
+      ARR_IMPORT_EXTRA_FILES: "${ARR_IMPORT_EXTRA_FILES:-false}"
+      ARR_EXTRA_FILE_EXTENSIONS: ${ARR_EXTRA_FILE_EXTENSIONS:-srt}
+    ports:
+      - "7878:7878"
+    volumes:
+      - ./data/radarr:/config
+      - ../scripts/configure-arr-auth.sh:/opt/configure-arr-auth.sh:ro
+      - ../scripts/configure-arr-root.sh:/opt/configure-arr-root.sh:ro
+      - ../scripts/configure-arr-media.sh:/opt/configure-arr-media.sh:ro
+      - ${LIBRARY_DIR:-/media/movies}:${ARR_ROOT_FOLDER:-/movies}
+      - ${SHARED_DOWNLOADS_DIR:-/downloads}:/downloads
+    networks:
+      - media-shared
+
+networks:
+  media-shared:
+    name: media-shared
+    external: true

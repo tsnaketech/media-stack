@@ -1,0 +1,97 @@
+name: media-indexer
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  environment: &environment
+    PUID: ${PUID:-1000}
+    PGID: ${PGID:-1000}
+    TZ: ${TZ:-Europe/Paris}
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  prowlarr:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    networks:
+      - media-shared
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    post_start:
+      - command: ["/bin/bash", "/opt/configure-arr-auth.sh"]
+        user: "${PUID:-1000}:${PGID:-1000}"
+        environment:
+          ARR_AUTH_API_URL: http://127.0.0.1:9696/api/v1/config/host
+    environment:
+      <<: *environment
+      PROWLARR__AUTH__METHOD: ${ARR_AUTH_METHOD:-Forms}
+      PROWLARR__AUTH__REQUIRED: ${ARR_AUTH_REQUIRED:-DisabledForLocalAddresses}
+      PROWLARR__SERVER__TRUSTEDNETWORKS: ${ARR_TRUSTED_PROXIES:-}
+      PROWLARR__SERVER__ALLOWEDHOSTS: ${ARR_ALLOWED_HOSTS:-localhost;127.0.0.1;prowlarr;prowlarr.arr.local}
+      PROWLARR_APPS_SETUP_ENABLED: ${PROWLARR_APPS_SETUP_ENABLED:-true}
+      PROWLARR_APPS_PROWLARR_URL: ${PROWLARR_APPS_PROWLARR_URL:-http://prowlarr:9696}
+      PROWLARR_APPS_SYNC_LEVEL: ${PROWLARR_APPS_SYNC_LEVEL:-fullSync}
+      PROWLARR_APP_LIDARR_ENABLED: ${PROWLARR_APP_LIDARR_ENABLED:-true}
+      PROWLARR_APP_LIDARR_URL: ${PROWLARR_APP_LIDARR_URL:-http://lidarr:8686}
+      PROWLARR_APP_LIDARR_API_KEY: ${PROWLARR_APP_LIDARR_API_KEY:-}
+      PROWLARR_APP_LIDARR_SYNC_LEVEL: ${PROWLARR_APP_LIDARR_SYNC_LEVEL:-}
+      PROWLARR_APP_RADARR_ENABLED: ${PROWLARR_APP_RADARR_ENABLED:-true}
+      PROWLARR_APP_RADARR_URL: ${PROWLARR_APP_RADARR_URL:-http://radarr:7878}
+      PROWLARR_APP_RADARR_API_KEY: ${PROWLARR_APP_RADARR_API_KEY:-}
+      PROWLARR_APP_RADARR_SYNC_LEVEL: ${PROWLARR_APP_RADARR_SYNC_LEVEL:-}
+      PROWLARR_APP_SONARR_ENABLED: ${PROWLARR_APP_SONARR_ENABLED:-true}
+      PROWLARR_APP_SONARR_URL: ${PROWLARR_APP_SONARR_URL:-http://sonarr:8989}
+      PROWLARR_APP_SONARR_API_KEY: ${PROWLARR_APP_SONARR_API_KEY:-}
+      PROWLARR_APP_SONARR_SYNC_LEVEL: ${PROWLARR_APP_SONARR_SYNC_LEVEL:-}
+      FLARESOLVERR_SETUP_ENABLED: ${FLARESOLVERR_SETUP_ENABLED:-true}
+      FLARESOLVERR_URL: ${FLARESOLVERR_URL:-http://flaresolverr:8191}
+      FLARESOLVERR_REQUEST_TIMEOUT: ${FLARESOLVERR_REQUEST_TIMEOUT:-60}
+      FLARESOLVERR_TAG: ${FLARESOLVERR_TAG:-flaresolverr}
+      FLARESOLVERR_INDEXERS: ${FLARESOLVERR_INDEXERS:-}
+      ARR_AUTH_USERNAME: ${ARR_AUTH_USERNAME:-}
+      ARR_AUTH_PASSWORD: ${ARR_AUTH_PASSWORD:-}
+    volumes:
+      - ./data/prowlarr:/config
+      - ../scripts/configure-arr-auth.sh:/opt/configure-arr-auth.sh:ro
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:9696:9696"
+
+  flaresolverr:
+    <<: *common-keys
+    dns:
+      - ${DNS_PRIMARY:-1.1.1.1}
+      - ${DNS_SECONDARY:-1.0.0.1}
+    networks:
+      - media-shared
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      LOG_LEVEL: ${FLARESOLVERR_LOG_LEVEL:-info}
+      LOG_HTML: ${FLARESOLVERR_LOG_HTML:-false}
+      CAPTCHA_SOLVER: none
+    shm_size: 256mb
+    tmpfs:
+      - /tmp:size=256M,mode=1777
+    volumes:
+      - ./data/flaresolverr:/config
+    ports:
+      - "${FLARESOLVERR_BIND_IP:-127.0.0.1}:${FLARESOLVERR_PORT:-8191}:8191"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8191/"]
+      start_period: 60s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+networks:
+  media-shared:
+    name: media-shared
+    external: true

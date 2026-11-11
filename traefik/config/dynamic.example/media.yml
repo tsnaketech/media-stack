@@ -1,0 +1,91 @@
+http:
+  routers:
+    lidarr:
+      rule: "Host(`lidarr.arr.local`)"
+      entryPoints:
+        - web
+      service: lidarr
+      middlewares:
+        - security-headers
+    navidrome:
+      rule: "Host(`navidrome.arr.local`)"
+      entryPoints:
+        - web
+      service: navidrome
+      middlewares:
+        - security-headers
+    prowlarr:
+      rule: "Host(`prowlarr.arr.local`)"
+      entryPoints:
+        - web
+      service: prowlarr
+      middlewares:
+        - security-headers
+    qbittorrent:
+      rule: "Host(`qbittorrent.arr.local`)"
+      entryPoints:
+        - web
+      service: qbittorrent
+      middlewares:
+        - security-headers
+    radarr:
+      rule: "Host(`radarr.arr.local`)"
+      entryPoints:
+        - web
+      service: radarr
+      middlewares:
+        - security-headers
+    books:
+      rule: "Host(`books.arr.local`)"
+      entryPoints:
+        - web
+      service: books
+      middlewares:
+        - security-headers
+    audiobookshelf:
+      rule: "Host(`audiobookshelf.arr.local`)"
+      entryPoints:
+        - web
+      service: audiobookshelf
+      middlewares:
+        - security-headers
+    arcane:
+      rule: "Host(`arcane.arr.local`)"
+      entryPoints:
+        - web
+      service: arcane
+      middlewares:
+        - security-headers
+  services:
+    lidarr:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8686"
+    navidrome:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:4533"
+    prowlarr:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:9696"
+    qbittorrent:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8080"
+    radarr:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:7878"
+    books:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8083"
+    audiobookshelf:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:13378"
+    arcane:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:3552"

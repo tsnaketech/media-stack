@@ -1,0 +1,74 @@
+name: homelab-dozzle
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  docker-proxy:
+    <<: *common-keys
+    image: lscr.io/linuxserver/socket-proxy:latest
+    container_name: observability-docker-proxy
+    read_only: true
+    environment:
+      CONTAINERS: "1"
+      EVENTS: "1"
+      INFO: "1"
+      PING: "1"
+      VERSION: "1"
+      ALLOW_LOGS: "1"
+      POST: "0"
+      EXEC: "0"
+      AUTH: "0"
+      LOG_LEVEL: warning
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    tmpfs:
+      - /run:rw,mode=1777
+      - /tmp
+    networks:
+      - observability
+
+  dozzle:
+    <<: *common-keys
+    image: amir20/dozzle:${DOZZLE_IMAGE_TAG:-latest}
+    container_name: dozzle
+    user: "${PUID:-1000}:${PGID:-1000}"
+    cap_drop:
+      - ALL
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      DOZZLE_REMOTE_HOST: tcp://docker-proxy:2375
+      DOZZLE_HOSTNAME: ${DOZZLE_HOSTNAME:-Homelab}
+      DOZZLE_NO_ANALYTICS: "true"
+      DOZZLE_ENABLE_ACTIONS: "false"
+      DOZZLE_ENABLE_SHELL: "false"
+    depends_on:
+      - docker-proxy
+    volumes:
+      - ./data:/data
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${DOZZLE_PORT:-9999}:8080"
+    networks:
+      - observability
+      - proxy
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+networks:
+  observability:
+    name: infra-observability
+    internal: true
+  proxy:
+    name: proxy-network
+    external: true

@@ -1,0 +1,36 @@
+name: arcane
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+
+services:
+
+  arcane:
+    <<: *common-keys
+    image: ghcr.io/getarcaneapp/manager:latest
+    container_name: arcane
+    ports:
+      - "3552:3552"
+    environment:
+      - APP_URL=${APP_URL:-http://arcane.arr.local}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - PROJECTS_DIRECTORY=${PROJECTS_DIRECTORY}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../:/opt/media-stack
+      - ./builds:/builds
+    healthcheck:
+      test: ["CMD", "/app/arcane", "health", "--timeout", "2s"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  default:
+    name: arcane-network

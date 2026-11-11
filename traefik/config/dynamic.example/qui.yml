@@ -1,0 +1,14 @@
+http:
+  routers:
+    qui:
+      rule: "Host(`qui.arr.local`)"
+      entryPoints:
+        - web
+      service: qui
+      middlewares:
+        - security-headers
+  services:
+    qui:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:7476"

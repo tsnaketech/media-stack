@@ -1,0 +1,14 @@
+http:
+  routers:
+    homepage:
+      rule: "Host(`homepage.arr.local`)"
+      entryPoints:
+        - web
+      service: homepage
+      middlewares:
+        - security-headers
+  services:
+    homepage:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:3002"

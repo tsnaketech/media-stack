@@ -1,0 +1,14 @@
+http:
+  routers:
+    dozzle:
+      rule: "Host(`dozzle.arr.local`)"
+      entryPoints:
+        - web
+      service: dozzle
+      middlewares:
+        - security-headers
+  services:
+    dozzle:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:9999"

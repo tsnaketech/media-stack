@@ -1,0 +1,64 @@
+name: media-vpn
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  gluetun:
+    <<: *common-keys
+    # Official image published by https://github.com/passteque/gluetun
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      LOG_LEVEL: ${GLUETUN_LOG_LEVEL:-info}
+      VPN_SERVICE_PROVIDER: ${VPN_SERVICE_PROVIDER:-protonvpn}
+      VPN_TYPE: ${VPN_TYPE:-wireguard}
+      SERVER_COUNTRIES: ${SERVER_COUNTRIES:-}
+      SERVER_CITIES: ${SERVER_CITIES:-}
+      SERVER_HOSTNAMES: ${SERVER_HOSTNAMES:-}
+      FREE_ONLY: ${FREE_ONLY:-off}
+      PORT_FORWARD_ONLY: ${PORT_FORWARD_ONLY:-on}
+      VPN_PORT_FORWARDING: ${VPN_PORT_FORWARDING:-off}
+      WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY:-}
+      WIREGUARD_ADDRESSES: ${WIREGUARD_ADDRESSES:-}
+      WIREGUARD_PUBLIC_KEY: ${WIREGUARD_PUBLIC_KEY:-}
+      WIREGUARD_ENDPOINT_IP: ${WIREGUARD_ENDPOINT_IP:-}
+      WIREGUARD_ENDPOINT_PORT: ${WIREGUARD_ENDPOINT_PORT:-}
+      WIREGUARD_PRESHARED_KEY: ${WIREGUARD_PRESHARED_KEY:-}
+      OPENVPN_USER: ${OPENVPN_USER:-}
+      OPENVPN_PASSWORD: ${OPENVPN_PASSWORD:-}
+      OPENVPN_CUSTOM_CONFIG: ${OPENVPN_CUSTOM_CONFIG:-}
+      FIREWALL_OUTBOUND_SUBNETS: ${FIREWALL_OUTBOUND_SUBNETS:-}
+      FIREWALL_INPUT_PORTS: ${FIREWALL_INPUT_PORTS:-}
+      HTTP_CONTROL_SERVER_ADDRESS: 127.0.0.1:8000
+      HTTPPROXY: "off"
+      SHADOWSOCKS: "off"
+    volumes:
+      - ./data:/gluetun
+    ports:
+      - "${QBITTORRENT_WEB_BIND_IP:-0.0.0.0}:${QBITTORRENT_WEB_PORT:-8080}:8080"
+      - "${METUBE_WEB_BIND_IP:-0.0.0.0}:${METUBE_PORT:-8081}:8081"
+      - "${JDOWNLOADER_WEB_BIND_IP:-0.0.0.0}:${JDOWNLOADER_PORT:-5800}:5800"
+    networks:
+      media-shared:
+        aliases:
+          - qbittorrent
+          - metube
+          - jdownloader
+
+networks:
+  media-shared:
+    name: media-shared
+    external: true

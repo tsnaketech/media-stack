@@ -1,0 +1,31 @@
+http:
+  routers:
+    jdownloader-http:
+      rule: "Host(`jdownloader.arr.local`)"
+      entryPoints:
+        - web
+      service: jdownloader
+      middlewares:
+        - jdownloader-https
+    jdownloader:
+      rule: "Host(`jdownloader.arr.local`)"
+      entryPoints:
+        - websecure
+      tls: {}
+      service: jdownloader
+      middlewares:
+        - security-headers
+  services:
+    jdownloader:
+      loadBalancer:
+        serversTransport: jdownloader-local-tls
+        servers:
+          - url: "https://SERVER_IP:5800"
+  serversTransports:
+    jdownloader-local-tls:
+      insecureSkipVerify: true
+  middlewares:
+    jdownloader-https:
+      redirectScheme:
+        scheme: https
+        permanent: true

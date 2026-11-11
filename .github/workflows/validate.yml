@@ -1,0 +1,50 @@
+name: Validate configuration
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  STACK_EXTENSIONS_DIR: ""
+
+defaults:
+  run:
+    working-directory: stacks
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check script syntax
+        run: |
+          sh -n ../homepage/scripts/start.sh
+          bash -n scripts/stacks.sh
+          bash -n scripts/vpn-up.sh
+          bash -n scripts/configure-sabnzbd.sh
+          bash -n scripts/configure-arr-auth.sh
+          bash -n scripts/configure-arr-root.sh
+          bash -n scripts/configure-arr-media.sh
+          bash -n scripts/configure-profilarr-auth.sh
+          python3 -c 'import ast; from pathlib import Path; [ast.parse(p.read_text()) for p in Path("scripts").glob("*.py")]'
+      - name: Test setup scripts
+        run: |
+          command -v jq
+          node --test ../homepage/tests/merge-services.test.cjs
+          python3 -m unittest discover -s tests -v
+      - name: Test clean-checkout preparation
+        run: python3 scripts/test-initialization.py
+      - name: Validate Compose files without local secrets
+        run: ./scripts/stacks.sh validate --with-infra
+
+  initialization-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test clean-data native core in an isolated Docker project
+        run: sudo python3 scripts/test-initialization.py --docker --pull

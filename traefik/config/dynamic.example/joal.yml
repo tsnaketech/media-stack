@@ -1,0 +1,14 @@
+http:
+  routers:
+    joal:
+      rule: "Host(`joal.arr.local`)"
+      entryPoints:
+        - web
+      service: joal
+      middlewares:
+        - security-headers
+  services:
+    joal:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8088"

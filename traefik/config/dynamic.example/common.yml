@@ -1,0 +1,6 @@
+http:
+  middlewares:
+    security-headers:
+      headers:
+        contentTypeNosniff: true
+        referrerPolicy: same-origin

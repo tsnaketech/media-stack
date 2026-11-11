@@ -1,0 +1,122 @@
+- "Lecture":
+    - "Jellyfin":
+        href: "http://jellyfin.arr.local"
+        icon: jellyfin.png
+        server: local
+        container: jellyfin
+    - "Navidrome":
+        href: "http://navidrome.arr.local"
+        icon: navidrome.png
+        server: local
+        container: navidrome
+    - "Audiobookshelf":
+        href: "http://audiobookshelf.arr.local"
+        icon: audiobookshelf.png
+        server: local
+        container: audiobookshelf
+    - "Calibre-Web":
+        href: "http://books.arr.local"
+        icon: calibre-web.png
+        server: local
+        container: calibre-web
+    - "Shelfmark Lite":
+        href: "http://shelfmark.arr.local"
+        icon: shelfmark.png
+        server: local
+        container: shelfmark
+- "Bibliothèques et demandes":
+    - "Seerr":
+        href: "http://seerr.arr.local"
+        icon: seerr.png
+        server: local
+        container: seerr
+    - "Radarr — films":
+        href: "http://radarr.arr.local"
+        icon: radarr.png
+        server: local
+        container: radarr
+    - "Sonarr — séries":
+        href: "http://sonarr.arr.local"
+        icon: sonarr.png
+        server: local
+        container: sonarr
+    - "Lidarr — musique":
+        href: "http://lidarr.arr.local"
+        icon: lidarr.png
+        server: local
+        container: lidarr
+- "Téléchargements":
+    - "qBittorrent":
+        href: "http://qbittorrent.arr.local"
+        icon: qbittorrent.png
+        server: local
+        container: qbittorrent
+    - "SABnzbd":
+        href: "http://sabnzbd.arr.local"
+        icon: sabnzbd.png
+        server: local
+        container: sabnzbd
+    - "JDownloader 2":
+        href: "https://jdownloader.arr.local"
+        icon: jdownloader.png
+        server: local
+        container: jdownloader
+    - "MeTube":
+        href: "http://metube.arr.local"
+        icon: metube.png
+        server: local
+        container: metube
+    - "qui — gestion qBittorrent":
+        href: "http://qui.arr.local"
+        icon: qui.png
+        server: local
+        container: qui
+    - "JOAL":
+        href: "http://joal.arr.local/changeThisPathBeforeUse/ui/"
+        icon: joal.png
+        server: local
+        container: joal
+- "Indexeurs et réglages":
+    - "Prowlarr — indexeurs":
+        href: "http://prowlarr.arr.local"
+        icon: prowlarr.png
+        server: local
+        container: prowlarr
+    - "Profilarr — profils":
+        href: "http://profilarr.arr.local"
+        icon: profilarr.png
+        server: local
+        container: profilarr
+    - "Bazarr — sous-titres":
+        href: "http://bazarr.arr.local"
+        icon: bazarr.png
+        server: local
+        container: bazarr
+- "Indexeurs":
+    - "C411":
+        href: "https://c411.org"
+        icon: "https://c411.org/apple-touch-icon.png"
+    - "1337x":
+        href: "https://x1337x.eu/"
+        icon: "https://x1337x.eu/favicon.ico"
+- "Administration":
+    - "Homepage":
+        href: "http://homepage.arr.local"
+        icon: homepage.png
+        server: local
+        container: homepage
+    - "Dozzle — journaux":
+        href: "http://dozzle.arr.local"
+        icon: dozzle.png
+        server: local
+        container: dozzle
+    - "Arcane — conteneurs":
+        href: "http://arcane.arr.local"
+        icon: arcane.png
+        server: local
+        container: arcane
+    - "Traefik — dashboard":
+        href: "http://SERVER_IP:8888/dashboard/"
+        icon: traefik.png
+        server: local
+        container: traefik

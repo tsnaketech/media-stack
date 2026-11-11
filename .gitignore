@@ -1,0 +1,33 @@
+# Private configuration and credentials
+.env
+.env.*
+!.env.example
+*credentials*.json
+README.local.md
+
+# Application state, operational backups and reports
+data/
+logs/
+downloads/
+/backups/
+/reports/
+/runtime/
+/containerd/
+/arcane/builds/
+/homepage/config/
+/traefik/config/dynamic/
+*.db
+*.db-*
+*.sqlite
+*.sqlite*
+*.log
+*.pem
+*.key
+
+# Generated files and local tools
+__pycache__/
+*.py[cod]
+.venv/
+.vscode/
+.idea/
+.DS_Store

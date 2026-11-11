@@ -1,0 +1,14 @@
+http:
+  routers:
+    shelfmark:
+      rule: "Host(`shelfmark.arr.local`)"
+      entryPoints:
+        - web
+      service: shelfmark
+      middlewares:
+        - security-headers
+  services:
+    shelfmark:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8084"

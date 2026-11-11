@@ -1,0 +1,14 @@
+http:
+  routers:
+    metube:
+      rule: "Host(`metube.arr.local`)"
+      entryPoints:
+        - web
+      service: metube
+      middlewares:
+        - security-headers
+  services:
+    metube:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8081"

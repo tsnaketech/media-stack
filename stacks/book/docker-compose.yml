@@ -1,0 +1,55 @@
+name: media-book
+
+x-common-keys: &common-keys
+  restart: unless-stopped
+  dns:
+    - ${DNS_PRIMARY:-1.1.1.1}
+    - ${DNS_SECONDARY:-1.0.0.1}
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  calibre-web:
+    <<: *common-keys
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/Paris}
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./data/calibre-web:/config
+      - ${LIBRARY_DIR:-/media/books}:${CALIBRE_ROOT_FOLDER:-/books}
+
+  shelfmark:
+    <<: *common-keys
+    image: ghcr.io/calibrain/shelfmark-lite:latest
+    container_name: shelfmark
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/Paris}
+      INGEST_DIR: ${SHELFMARK_ROOT_FOLDER:-/books}
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./data/shelfmark:/config
+      - ${SHARED_DOWNLOADS_DIR:-/downloads}/books/ingest:${SHELFMARK_ROOT_FOLDER:-/books}
+      - ${SHARED_DOWNLOADS_DIR:-/downloads}:/downloads
+    networks:
+      - media-shared
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8084/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+networks:
+  media-shared:
+    name: media-shared
+    external: true

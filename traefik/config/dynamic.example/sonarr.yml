@@ -1,0 +1,14 @@
+http:
+  routers:
+    sonarr:
+      rule: "Host(`sonarr.arr.local`)"
+      entryPoints:
+        - web
+      service: sonarr
+      middlewares:
+        - security-headers
+  services:
+    sonarr:
+      loadBalancer:
+        servers:
+          - url: "http://SERVER_IP:8989"

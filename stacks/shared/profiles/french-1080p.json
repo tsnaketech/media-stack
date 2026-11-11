@@ -1,0 +1,9 @@
+{
+  "name": "1080p Français",
+  "custom_format": "Audio français requis",
+  "description": "WEB-DL, WEBRip et Blu-ray 1080p avec audio français identifié. MULTI accepté si le français est identifié. VO et VOSTFR seules refusées.",
+  "language": "French",
+  "qualities": ["WEBDL-1080p", "WEBRip-1080p", "Bluray-1080p"],
+  "minimum_score": 10000,
+  "upgrades_allowed": false
+}

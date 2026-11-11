@@ -1,0 +1,6 @@
+- datetime:
+    locale: fr
+    text_size: lg
+    format:
+      dateStyle: long
+      timeStyle: short
