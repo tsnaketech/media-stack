@@ -55,6 +55,7 @@ restent exclus de Git.
 ## Documentation
 
 - [Démarrage automatique et raccordement VPN](stacks/docs/boot.md)
+- [Doublons vidéo et rapports CSV/HTML](stacks/docs/video-duplicates.md)
 
 - [Installation, droits et configuration des services](stacks/README.fr.md)
 - [Organisation et migration vers cette racine](docs/project-layout.md)
